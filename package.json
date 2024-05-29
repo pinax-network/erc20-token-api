@@ -1,0 +1,59 @@
+{
+    "name": "erc20-token-api",
+    "description": "Get informations about ERC20 tokens",
+    "version": "0.0.1",
+    "homepage": "https://github.com/pinax-network/erc20-token-api",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Etienne Donneger",
+            "email": "etienne@pinax.network",
+            "url": "https://github.com/0237h"
+        },
+        {
+            "name": "Denis Carriere",
+            "email": "denis@pinax.network",
+            "url": "https://github.com/DenisCarriere/"
+        },
+        {
+            "name": "Mathieu Lefebvre",
+            "email": "mathieu@pinax.network",
+            "url": "https://github.com/Matlefebvre1234/"
+        }
+    ],
+    "dependencies": {
+        "@clickhouse/client-web": "latest",
+        "commander": "latest",
+        "dotenv": "latest",
+        "ethers": "^6.12.1",
+        "hono": "latest",
+        "prom-client": "latest",
+        "tslog": "latest",
+        "typed-openapi": "latest",
+        "zod": "latest"
+    },
+    "private": true,
+    "scripts": {
+        "build": "export APP_VERSION=$(git rev-parse --short HEAD) && bun build --compile index.ts --outfile erc20-token-api",
+        "clean": "bun i --force",
+        "dev": "export APP_VERSION=$(git rev-parse --short HEAD) && bun --watch index.ts",
+        "lint": "export APP_VERSION=$(git rev-parse --short HEAD) && bun run tsc --noEmit --skipLibCheck --pretty",
+        "start": "export APP_VERSION=$(git rev-parse --short HEAD) && bun index.ts",
+        "test": "bun test --coverage",
+        "types": "bun run tsp compile ./src/typespec && bun run typed-openapi ./tsp-output/@typespec/openapi3/openapi.json -o ./src/types/zod.gen.ts -r zod",
+        "types:check": "bun run tsp compile ./src/typespec --no-emit --pretty --warn-as-error",
+        "types:format": "bun run tsp format src/typespec/**/*.tsp",
+        "types:watch": "bun run tsp compile ./src/typespec --watch --pretty --warn-as-error"
+    },
+    "type": "module",
+    "devDependencies": {
+        "@typespec/compiler": "latest",
+        "@typespec/openapi3": "latest",
+        "@typespec/protobuf": "latest",
+        "bun-types": "latest",
+        "typescript": "latest"
+    },
+    "prettier": {
+        "tabWidth": 4
+    }
+}
