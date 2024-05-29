@@ -1,0 +1,27 @@
+name: Build
+on:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write
+
+jobs:
+  bun-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: 'Install Dependencies'
+        run: bun install
+
+      - name: 'Build app'
+        run: bun run build
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            antelope-token-api
