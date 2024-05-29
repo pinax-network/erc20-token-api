@@ -1,4 +1,4 @@
-# Antelope Token API
+# ERC20 Token API
 
 [![.github/workflows/bun-test.yml](https://github.com/pinax-network/erc20-token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/erc20-token-api/actions/workflows/bun-test.yml)
 
