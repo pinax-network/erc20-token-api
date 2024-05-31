@@ -177,7 +177,6 @@ interface Usage {
     @route("/contract")
     @get
     contract(
-        @query add?: BlockInfo.block_num,
         @query contract?: Supply.address,
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
