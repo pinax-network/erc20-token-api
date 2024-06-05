@@ -102,7 +102,7 @@ alias AmountFilter = {
 // This also helps preventing self-references in generated `components` for codegen to work properly.
 alias APIResponse<T> = T | APIError;
 alias PaginationQueryParams = {
-    @query limit?: uint64 = 10;
+    @query limit?: uint64 = 1;
     @query page?: uint64 = 1;
 };
 
@@ -128,17 +128,6 @@ interface Usage {
     ): APIResponse<UsageResponse<BalanceChange[]>>;
 
     /**
-        Information about the current head block in the database.
-        @returns Array of block information.
-    */
-    @summary("Head block information")
-    @route("/head")
-    @get
-    head(...PaginationQueryParams): APIResponse<UsageResponse<{
-        block_num: BlockInfo.block_num;
-    }[]>>;
-
-    /**
         List of holders of a token.
         @returns Array of accounts.
     */
@@ -160,7 +149,6 @@ interface Usage {
     @route("/supply")
     @get
     supply(
-        @query block_num?: BlockInfo.block_num,
         @query contract?: Supply.address,
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
@@ -193,11 +181,6 @@ interface Usage {
     @route("/transfers")
     @get
     transfers(
-        @query({
-            format: "csv",
-        })
-        block_range?: BlockInfo.block_num[],
-
         @query from?: Transfer.from,
         @query to?: Transfer.to,
         @query address?: Transfer.address,
@@ -218,6 +201,19 @@ interface Usage {
         @path transaction_id: Transfer.transaction_id,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Transfer[]>>;
+
+
+     /**
+        Information about the current head block in the database.
+        @returns Array of block information.
+    */
+        @summary("Head block information")
+        @route("/head")
+        @get
+        head(...PaginationQueryParams): APIResponse<UsageResponse<{
+            block_num: BlockInfo.block_num;
+        }[]>>;
+    
 }
 
 model Version {

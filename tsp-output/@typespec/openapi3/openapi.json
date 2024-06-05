@@ -134,7 +134,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 10
+              "default": 1
             }
           },
           {
@@ -196,15 +196,6 @@
         "summary": "Token contract information",
         "description": "get Token Contract information.",
         "parameters": [
-          {
-            "name": "add",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
           {
             "name": "contract",
             "in": "query",
@@ -308,7 +299,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 10
+              "default": 1
             }
           },
           {
@@ -374,7 +365,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 10
+              "default": 1
             }
           },
           {
@@ -565,7 +556,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 10
+              "default": 1
             }
           },
           {
@@ -685,15 +676,6 @@
         "description": "Total supply for a token.",
         "parameters": [
           {
-            "name": "block_num",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
             "name": "contract",
             "in": "query",
             "required": false,
@@ -796,7 +778,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 10
+              "default": 1
             }
           },
           {
@@ -858,20 +840,6 @@
         "summary": "Token transfers",
         "description": "All transfers related to a token.",
         "parameters": [
-          {
-            "name": "block_range",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "format": "uint64"
-              }
-            },
-            "style": "form",
-            "explode": false
-          },
           {
             "name": "from",
             "in": "query",
@@ -1007,7 +975,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 10
+              "default": 1
             }
           },
           {
@@ -1084,7 +1052,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 10
+              "default": 1
             }
           },
           {

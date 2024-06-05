@@ -144,7 +144,6 @@ export const get_Usage_contract = {
   path: z.literal("/contract"),
   parameters: z.object({
     query: z.object({
-      add: z.number().optional(),
       contract: z.string().optional(),
       symbol: z.string().optional(),
       name: z.string().optional(),
@@ -241,7 +240,6 @@ export const get_Usage_supply = {
   path: z.literal("/supply"),
   parameters: z.object({
     query: z.object({
-      block_num: z.number().optional(),
       contract: z.string().optional(),
       symbol: z.string().optional(),
       name: z.string().optional(),
@@ -269,7 +267,6 @@ export const get_Usage_transfers = {
   path: z.literal("/transfers"),
   parameters: z.object({
     query: z.object({
-      block_range: z.array(z.number()).optional(),
       from: z.string().optional(),
       to: z.string().optional(),
       address: z.string().optional(),
