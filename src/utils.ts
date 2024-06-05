@@ -33,7 +33,7 @@ export function APIErrorResponse(ctx: Context, status: APIError["status"], code:
 export function getAddress(address: string, key: string, required: boolean = false) {
     if (required && !address) throw new Error(`Missing [${key}] parameter`);
     if (address) checkValidAddress(address);
-    return address;
+    return formatAddress(address);
 }
 
 export function formatAddress(address: string | null) {
@@ -48,6 +48,16 @@ export function formatAddress(address: string | null) {
 
 export function checkValidAddress(address?: string) {
     if (!ethers.isAddress(address)) throw new Error("Invalid address");
+}
+
+export function formatTxid(txid: string | null) {
+    if (!txid) return undefined;
+    if (txid.startsWith("0x")) {
+        // Remove the "0x" prefix and return the address
+        return txid.slice(2).toLowerCase();
+    }
+    // If it doesn't start with "0x", return the address as is
+    return txid.toLowerCase();
 }
 
 export function parseLimit(limit?: string | null | number, defaultLimit?: number) {

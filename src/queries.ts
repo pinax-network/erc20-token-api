@@ -1,8 +1,7 @@
 import { DEFAULT_SORT_BY } from "./config.js";
-import { getAddress, parseLimit, parseTimestamp } from "./utils.js";
+import { getAddress, parseLimit, parseTimestamp, formatTxid } from "./utils.js";
 import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParams } from "./types/api.js";
 import { Contract } from "ethers";
-
 
 export function addTimestampBlockFilter(q: any, where: any[]) {
     const operators = [
@@ -276,12 +275,15 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
         const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
         // SQL Query
         const table = 'mv_balance_changes_contract'
-        let query = `SELECT
-    owner,
+        let query = `SELECT 
+        owner,
         new_balance AS balance,
         block_num as block_number,
         toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
     FROM ${table} `;
+
+        //Join for latest block
+        query += `JOIN (SELECT owner, MAX(block_num) as block_num FROM ${table} WHERE contract == '${contract}' GROUP BY owner) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num`
         if (!example) {
             // WHERE statements
             const where: any = [];
@@ -295,13 +297,16 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
 
             //add ORDER BY and GROUP BY
-            query += `ORDER BY timestamp DESC`
+            query += ` ORDER BY balance DESC`
         }
 
         const limit = parseLimit(q.limit, 100);
         if (limit) query += ` LIMIT ${limit} `;
         const offset = q.page;
         if (offset) query += ` OFFSET ${offset} `
+
+
+        console.log(query)
         return query;
     }
     else {
@@ -389,7 +394,7 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?
         let to;
 
         //  const chain = searchParams.get("chain");
-        const transaction_id = q.transaction_id?.toLowerCase();
+        const transaction_id = formatTxid(q.transaction_id);
 
 
         // SQL Query
