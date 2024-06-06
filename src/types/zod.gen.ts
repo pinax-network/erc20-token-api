@@ -117,7 +117,6 @@ export const get_Usage_balance = {
   path: z.literal("/balance"),
   parameters: z.object({
     query: z.object({
-      block_num: z.union([z.number(), z.undefined()]),
       contract: z.union([z.string(), z.undefined()]),
       account: z.string(),
       greater_or_equals_by_block: z.union([z.number(), z.undefined()]),
@@ -147,14 +146,6 @@ export const get_Usage_contract = {
       contract: z.string().optional(),
       symbol: z.string().optional(),
       name: z.string().optional(),
-      greater_or_equals_by_block: z.number().optional(),
-      less_or_equals_by_block: z.number().optional(),
-      greater_by_block: z.number().optional(),
-      less_by_block: z.number().optional(),
-      greater_or_equals_by_timestamp: z.number().optional(),
-      less_or_equals_by_timestamp: z.number().optional(),
-      greater_by_timestamp: z.number().optional(),
-      less_by_timestamp: z.number().optional(),
       limit: z.number().optional(),
       page: z.number().optional(),
     }),

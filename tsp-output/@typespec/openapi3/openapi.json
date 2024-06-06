@@ -31,15 +31,6 @@
         "description": "Balances of an account.",
         "parameters": [
           {
-            "name": "block_num",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
             "name": "contract",
             "in": "query",
             "required": false,
@@ -218,78 +209,6 @@
             "required": false,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "greater_or_equals_by_block",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
-            "name": "less_or_equals_by_block",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
-            "name": "greater_by_block",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
-            "name": "less_by_block",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
-            "name": "greater_or_equals_by_timestamp",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "less_or_equals_by_timestamp",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "greater_by_timestamp",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "less_by_timestamp",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
             }
           },
           {
