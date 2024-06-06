@@ -7,7 +7,4 @@ CREATE TABLE IF NOT EXISTS Contracts  (
     timestamp       DateTime64(3, 'UTC'),
 )
 ENGINE = MergeTree PRIMARY KEY ("address")
-ORDER BY (address, timestamp, block_number,);
-
--- Indexes for block_number and chain --
-ALTER TABLE Contracts ADD INDEX Contracts_block_number_index block_number TYPE minmax;
+ORDER BY (address, name);
