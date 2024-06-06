@@ -169,26 +169,50 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
 
         let query = `SELECT
         contract,
-        toDateTime(toUnixTimestamp(last_value(timestamp))*1000) AS timestamp,
-        last_value(new_balance) AS balance `;
+        new_balance AS balance,
+        toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp,
+        block_num as block_number`
         query += ` FROM ${table}`
+
+
+        //Join for latest block between block range selected
+        const blockfilter: any = [];
+        let blockfilterQuery = "";
+        addTimestampBlockFilter(q, blockfilter);
+        if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
+        let joinSelectQuery = "";
+
+        if (contract) joinSelectQuery = `SELECT owner, MAX(block_number) as block_number FROM (SELECT owner, block_num as block_number, contract FROM ${table} ${blockfilterQuery})`;
+        else joinSelectQuery = `SELECT contract, owner, MAX(block_number) as block_number FROM (SELECT owner, block_num as block_number, contract FROM ${table} ${blockfilterQuery})`;
+        const joinWhereQuery: any = [];
+        //add where filter to joinQuery
+        if (contract) joinWhereQuery.push(`contract == '${contract}'`);
+        joinWhereQuery.push(`owner == '${owner}'`);
+        if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
+
+        //Add group by to joinQuery
+        if (contract) joinSelectQuery += ` GROUP BY owner`
+        else joinSelectQuery += ` GROUP BY (owner,contract)`
+
+        if (contract) query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_number`
+        else query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_number AND ${table}.contract = latest.contract`
+
+
         if (!example) {
             // WHERE statements
             const where = [];
 
             // equals
             where.push(`owner == '${owner}'`)
+            where.push(`balance != '0'`);
             if (contract) where.push(`contract == '${contract}'`);
-
-            // timestamp and block filter
-            addTimestampBlockFilter(q, where);
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
 
 
             //add ORDER BY and GROUP BY
-            query += ` GROUP BY contract ORDER BY timestamp DESC`
+            query += ` ORDER BY balance DESC`
         }
 
         //ADD limit
@@ -222,16 +246,29 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
         toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
     FROM ${table} `;
 
-        //Join for latest block
-        query += `JOIN (SELECT owner, MAX(block_num) as block_num FROM ${table} WHERE contract == '${contract}' GROUP BY owner) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num`
+        //Join for latest block between block range selected
+        const blockfilter: any = [];
+        let blockfilterQuery = "";
+        addTimestampBlockFilter(q, blockfilter);
+        if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
+
+        let joinSelectQuery = `SELECT owner, MAX(block_number) as block_number FROM (SELECT owner, block_num as block_number,contract FROM ${table} ${blockfilterQuery})`;
+        const joinWhereQuery: any = [];
+
+        //add where filter to joinQuery
+        joinWhereQuery.push(`contract == '${contract}'`);
+        if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
+
+        //Add group by to joinQuery
+        joinSelectQuery += ` GROUP BY owner`
+
+        query += `JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_number`
+
         if (!example) {
             // WHERE statements
             const where: any = [];
             if (contract) where.push(`contract == '${contract}'`);
             where.push(`CAST(balance as int) > 0`);
-
-            // timestamp and block filter
-            addTimestampBlockFilter(q, where);
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
