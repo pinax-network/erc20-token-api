@@ -119,7 +119,6 @@ interface Usage {
     @route("/balance")
     @get
     balance(
-        @query block_num?: BlockInfo.block_num,
         @query contract?: BalanceChange.contract,
         @query account: BalanceChange.owner,
         ...BlockFilter,
@@ -168,8 +167,6 @@ interface Usage {
         @query contract?: Supply.address,
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
-        ...BlockFilter,
-        ...TimestampFilter,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Contact>>;
 

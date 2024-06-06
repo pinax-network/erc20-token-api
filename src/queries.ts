@@ -31,50 +31,6 @@ export function addAmountFilter(q: any, where: any[]) {
     }
 }
 
-
-function balance_changes_owner_contract_query(table: string) {
-    let query = `SELECT
-    contract as contract,
-    owner as owner,
-    new_balance as balance,
-    toDateTime(toUnixTimestamp(timestamp)*1000) as timestamp,
-    transaction_id,
-    block_num as block_number,`;
-
-    query += ` FROM ${table}`
-    return query;
-}
-
-function balance_changes_owner_query(table: string) {
-    let query = `SELECT
-    owner,
-    contract,
-    toDateTime(toUnixTimestamp(last_value(timestamp))*1000) AS timestamp,
-    last_value(new_balance) AS balance`;
-
-    query += ` FROM ${table}`
-    return query;
-}
-
-function balance_changes_contract_query(table: string) {
-    let query = `SELECT
-    owner,
-    contract,
-    toDateTime(toUnixTimestamp(last_value(timestamp))*1000) AS timestamp,
-    last_value(new_balance) as balance`;
-
-    query += ` FROM ${table}`
-    return query;
-}
-
-
-
-
-
-
-
-
-
 export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
 
     if (endpoint === "/supply") {
@@ -207,35 +163,21 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         if (q.account) owner = getAddress(q.account, "owner", false)?.toLowerCase();
 
         let table;
-        let mvOwnerTable = "mv_balance_changes_owner"
-        let mvContractTable = "mv_balance_changes_contract"
-        let query = "";
-
         // SQL Query
-        table = 'balance_changes'
+        if (contract) table = 'mv_balance_changes_contract';
+        else table = "mv_balance_changes_owner"
 
-
-        if (contract && owner) query += balance_changes_owner_contract_query(mvOwnerTable);
-        else if (!contract && owner) query += balance_changes_owner_query(mvContractTable);
-        else if (contract && !owner) query += balance_changes_contract_query(mvContractTable);
-        else query += `SELECT 
-        block_num as block_number,
-        toDateTime(toUnixTimestamp(timestamp)*1000) as timestamp,
+        let query = `SELECT
         contract,
-        owner,
-        amount,
-        old_balance,
-        new_balance,
-        transaction_id,
-        change_type 
-    
-        FROM ${table}`
+        toDateTime(toUnixTimestamp(last_value(timestamp))*1000) AS timestamp,
+        last_value(new_balance) AS balance `;
+        query += ` FROM ${table}`
         if (!example) {
             // WHERE statements
             const where = [];
 
             // equals
-            if (owner) where.push(`owner == '${owner}'`);
+            where.push(`owner == '${owner}'`)
             if (contract) where.push(`contract == '${contract}'`);
 
             // timestamp and block filter
@@ -246,9 +188,7 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
 
 
             //add ORDER BY and GROUP BY
-            if (contract && owner) query += ` ORDER BY timestamp DESC`
-            if (!contract && owner) query += `GROUP BY (contract, owner) ORDER BY timestamp DESC`
-            if (contract && !owner) query += `GROUP BY (contract, owner) ORDER BY timestamp DESC`
+            query += ` GROUP BY contract ORDER BY timestamp DESC`
         }
 
         //ADD limit
