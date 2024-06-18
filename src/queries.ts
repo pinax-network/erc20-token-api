@@ -3,33 +3,22 @@ import { getAddress, parseLimit, parseTimestamp, formatTxid } from "./utils.js";
 import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParams } from "./types/api.js";
 import { Contract } from "ethers";
 
-export function addTimestampBlockFilter(q: any, where: any[]) {
-    const operators = [
-        ["greater_or_equals", ">="],
-        ["greater", ">"],
-        ["less_or_equals", "<="],
-        ["less", "<"],
-    ]
-    for (const [key, operator] of operators) {
-        const block_number = q[`${key}_by_block`];
-        const timestamp = q[`${key}_by_timestamp`];
-        if (block_number) where.push(`block_number ${operator} ${block_number}`);
-        if (timestamp) where.push(`toUnixTimestamp(timestamp) ${operator} ${timestamp}`);
-    }
+export function addBlockFilter(q: any, where: any[]) {
+    if (q.block_num) where.push(`block_number <= ${q.block_num}`);
 }
 
-export function addAmountFilter(q: any, where: any[]) {
-    const operators = [
-        ["greater_or_equals", ">="],
-        ["greater", ">"],
-        ["less_or_equals", "<="],
-        ["less", "<"],
-    ]
-    for (const [key, operator] of operators) {
-        const amount = q[`amount_${key}`];
-        if (amount) where.push(`amount ${operator} ${amount}`);
-    }
+export function addBlockRangeFilter(q: any, where: any[]) {
+
+    if (q.block_range && q.block_range != '0') {
+        const parts = q.block_range.split(',');
+        const block1 = parseInt(parts[0], 10);
+        const block2 = parseInt(parts[1], 10);
+
+        if (block1 && block2) where.push(`block_number >= ${block1} AND block_number <= ${block2}`)
+        else where.push(`block_number <= ${block1}`)
+    };
 }
+
 
 export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
 
@@ -68,7 +57,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
             if (address) where.push(`${table}.address == '${address}'`);
 
             // timestamp and block filter
-            addTimestampBlockFilter(q, where);
+            addBlockFilter(q, where);
 
             if (symbol) where.push(`LOWER(symbol) == '${symbol}'`);
             if (name) where.push(`LOWER(name) == '${name}'`);
@@ -128,8 +117,6 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
             if (symbol) where.push(`LOWER(symbol) == '${symbol}'`);
             if (name) where.push(`LOWER(name) == '${name}'`);
 
-            // timestamp and block filter
-            addTimestampBlockFilter(q, where);
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
@@ -178,7 +165,7 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         //Join for latest block between block range selected
         const blockfilter: any = [];
         let blockfilterQuery = "";
-        addTimestampBlockFilter(q, blockfilter);
+        addBlockFilter(q, blockfilter);
         if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
         let joinSelectQuery = "";
 
@@ -249,7 +236,7 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
         //Join for latest block between block range selected
         const blockfilter: any = [];
         let blockfilterQuery = "";
-        addTimestampBlockFilter(q, blockfilter);
+        addBlockFilter(q, blockfilter);
         if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
 
         let joinSelectQuery = `SELECT owner, MAX(block_number) as block_number FROM (SELECT owner, block_num as block_number,contract FROM ${table} ${blockfilterQuery})`;
@@ -301,7 +288,7 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
         let from;
         let to;
 
-        if (q.address) contract = getAddress(q.address, "contract", false)?.toLowerCase();
+        if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
         if (q.from) from = getAddress(q.from, "from", false)?.toLowerCase();
         if (q.to) to = getAddress(q.to, "to", false)?.toLowerCase();
 
@@ -336,10 +323,8 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
             if (from) where.push(`from == '${from}'`);
             if (to) where.push(`to == '${to}'`);
 
-            //add amount filter
-            addAmountFilter(q, where);
             // timestamp and block filter
-            addTimestampBlockFilter(q, where);
+            addBlockRangeFilter(q, where);
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;

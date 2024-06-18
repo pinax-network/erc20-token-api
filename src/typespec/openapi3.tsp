@@ -72,21 +72,18 @@ model UsageResponse<T> {
     meta: ResponseMetadata;
 }
 
-//alias for filtering by  timestamp
-alias TimestampFilter = {
-    @query greater_or_equals_by_timestamp?: BlockInfo.timestamp,
-    @query less_or_equals_by_timestamp?: BlockInfo.timestamp,
-    @query greater_by_timestamp?: BlockInfo.timestamp,
-    @query less_by_timestamp?: BlockInfo.timestamp,
-};
-
 
 //alias for filtering by  Block number
 alias BlockFilter = {
-    @query greater_or_equals_by_block?: BlockInfo.block_num,
-    @query less_or_equals_by_block?: BlockInfo.block_num,
-    @query greater_by_block?: BlockInfo.block_num,
-    @query less_by_block?: BlockInfo.block_num,
+    @query block_num?: BlockInfo.block_num,
+};
+
+//alias for filtering by  Blocks range number
+alias BlockRangeFilter = {
+    @query({
+        format: "csv",
+    })
+    block_range?: BlockInfo.block_num[],
 };
 
 
@@ -122,7 +119,6 @@ interface Usage {
         @query contract?: BalanceChange.contract,
         @query account: BalanceChange.owner,
         ...BlockFilter,
-        ...TimestampFilter,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<BalanceChange[]>>;
 
@@ -136,7 +132,6 @@ interface Usage {
     holders(
         @query contract: BalanceChange.contract,
         ...BlockFilter,
-        ...TimestampFilter,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Holder[]>>;
 
@@ -152,7 +147,6 @@ interface Usage {
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
         ...BlockFilter,
-        ...TimestampFilter,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Supply[]>>;
 
@@ -180,10 +174,8 @@ interface Usage {
     transfers(
         @query from?: Transfer.from,
         @query to?: Transfer.to,
-        @query address?: Transfer.address,
-        ...AmountFilter,
-        ...BlockFilter,
-        ...TimestampFilter,
+        @query contract?: Transfer.address,
+        ...BlockRangeFilter,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Transfer[]>>;
 
