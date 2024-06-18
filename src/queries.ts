@@ -268,7 +268,7 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
             // WHERE statements
             const where: any = [];
             if (contract) where.push(`contract == '${contract}'`);
-            where.push(`CAST(balance as int) > 0`);
+            where.push(`balance != '0'`);
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
