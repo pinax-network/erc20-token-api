@@ -6,7 +6,7 @@ import pkg from "../package.json";
 
 export const DEFAULT_PORT = "8080";
 export const DEFAULT_HOSTNAME = "localhost";
-export const DEFAULT_HOST = "http://ch-node44b.mar.eosn.io:8123/";
+export const DEFAULT_HOST = "localhost";
 export const DEFAULT_DATABASE = "eth_erc20_token";
 export const DEFAULT_USERNAME = "testing";
 export const DEFAULT_PASSWORD = "secret";
