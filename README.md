@@ -106,25 +106,25 @@ VERBOSE=true
 **For latest release**
 
 ```bash
-docker pull ghcr.io/pinax-network/antelope-token-api:latest
+docker pull ghcr.io/pinax-network/erc20-token-api:latest
 ```
 
 **For head of `develop` branch**
 
 ```bash
-docker pull ghcr.io/pinax-network/antelope-token-api:develop
+docker pull ghcr.io/pinax-network/erc20-token-api:develop
 ```
 
 -   Build from source
 
 ```bash
-docker build -t antelope-token-api .
+docker build -t erc20-token-api .
 ```
 
 -   Run with `.env` file
 
 ```bash
-docker run -it --rm --env-file .env ghcr.io/pinax-network/antelope-token-api
+docker run -it --rm --env-file .env ghcr.io/pinax-network/erc20-token-api
 ```
 
 ## Contributing
