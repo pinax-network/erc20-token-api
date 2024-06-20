@@ -4,7 +4,7 @@ import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParam
 import { Contract } from "ethers";
 
 export function addBlockFilter(q: any, where: any[]) {
-    if (q.block_num) where.push(`block_number <= ${q.block_num}`);
+    if (q.block_num) where.push(`block_num <= ${q.block_num}`);
 }
 
 export function addBlockRangeFilter(q: any, where: any[]) {
@@ -14,8 +14,8 @@ export function addBlockRangeFilter(q: any, where: any[]) {
         const block1 = parseInt(parts[0], 10);
         const block2 = parseInt(parts[1], 10);
 
-        if (block1 && block2) where.push(`block_number >= ${block1} AND block_number <= ${block2}`)
-        else where.push(`block_number <= ${block1}`)
+        if (block1 && block2) where.push(`block_num >= ${block1} AND block_num <= ${block2}`)
+        else where.push(`block_num <= ${block1}`)
     };
 }
 
@@ -34,12 +34,12 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
         name = q.name?.toLowerCase();
 
         // Query
-        const table = 'TotalSupply'
-        const contractTable = 'Contracts';
+        const table = 'mv_supply_contract'
+        const contractTable = 'contracts';
         let query = `SELECT
-    ${table}.address as address,
+    ${table}.contract,
         ${table}.supply as supply,
-                ${table}.block_number,
+                ${table}.block_num,
                         ${contractTable}.name as name,
                             ${contractTable}.symbol as symbol,
                                 ${contractTable}.decimals as decimals,
@@ -48,13 +48,13 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
 
         // JOIN Contracts table
-        query += ` LEFT JOIN Contracts ON ${contractTable}.address = ${table}.address`;
+        query += ` LEFT JOIN Contracts ON ${contractTable}.contract = ${table}.contract`;
         if (!example) {
             // WHERE statements
             const where = [];
 
             // equals
-            if (address) where.push(`${table}.address == '${address}'`);
+            if (address) where.push(`${table}.contract == '${address}'`);
 
             // timestamp and block filter
             addBlockFilter(q, where);
@@ -68,7 +68,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
             // Sort and Limit
             // const sort_by = searchParams.get("sort_by");
-            query += ` ORDER BY block_number ${DEFAULT_SORT_BY} `
+            query += ` ORDER BY block_num ${DEFAULT_SORT_BY} `
 
         }
         const limit = parseLimit(q.limit);
@@ -99,13 +99,13 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
         if (q.name) name = q.name?.toLowerCase();
 
         // Query
-        const table = 'Contracts'
+        const table = 'contracts'
         let query = `SELECT  
-    ${table}.address,
+    ${table}.contract,
     ${table}.name,
     ${table}.symbol,
     ${table}.decimals,
-    ${table}.block_number,
+    ${table}.block_num,
     toDateTime(toUnixTimestamp(${table}.timestamp) * 1000) as timestamp 
     FROM ${table} `
 
@@ -113,7 +113,7 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
         if (!example) {
             // WHERE statements
             const where = [];
-            if (address) where.push(`address == '${address}'`);
+            if (address) where.push(`contract == '${address}'`);
             if (symbol) where.push(`LOWER(symbol) == '${symbol}'`);
             if (name) where.push(`LOWER(name) == '${name}'`);
 
@@ -123,7 +123,7 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
 
             // Sort and Limit
             //const sort_by = searchParams.get("sort_by");
-            query += ` ORDER BY block_number ${DEFAULT_SORT_BY} `
+            query += ` ORDER BY block_num ${DEFAULT_SORT_BY} `
 
         }
         const limit = parseLimit(q.limit);
@@ -147,18 +147,19 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         let contract;
         let owner;
         if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
-        if (q.account) owner = getAddress(q.account, "owner", false)?.toLowerCase();
+        if (q.account) owner = getAddress(q.account, "account", false)?.toLowerCase();
 
         let table;
         // SQL Query
-        if (contract) table = 'mv_balance_changes_contract';
-        else table = "mv_balance_changes_owner"
+        if (contract) table = 'balance_changes_contract_historical_mv';
+        else table = "balance_changes_account_historical_mv"
 
         let query = `SELECT
+        owner as account,
         contract,
         new_balance AS balance,
         toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp,
-        block_num as block_number`
+        block_num `
         query += ` FROM ${table}`
 
 
@@ -169,8 +170,8 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
         let joinSelectQuery = "";
 
-        if (contract) joinSelectQuery = `SELECT owner, MAX(block_number) as block_number FROM (SELECT owner, block_num as block_number, contract FROM ${table} ${blockfilterQuery})`;
-        else joinSelectQuery = `SELECT contract, owner, MAX(block_number) as block_number FROM (SELECT owner, block_num as block_number, contract FROM ${table} ${blockfilterQuery})`;
+        if (contract) joinSelectQuery = `SELECT owner, MAX(block_num)   FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
+        else joinSelectQuery = `SELECT contract, owner, MAX(block_num) as block_num  FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
         const joinWhereQuery: any = [];
         //add where filter to joinQuery
         if (contract) joinWhereQuery.push(`contract == '${contract}'`);
@@ -181,8 +182,8 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         if (contract) joinSelectQuery += ` GROUP BY owner`
         else joinSelectQuery += ` GROUP BY (owner,contract)`
 
-        if (contract) query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_number`
-        else query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_number AND ${table}.contract = latest.contract`
+        if (contract) query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num`
+        else query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num AND ${table}.contract = latest.contract`
 
 
         if (!example) {
@@ -190,7 +191,7 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
             const where = [];
 
             // equals
-            where.push(`owner == '${owner}'`)
+            where.push(`account == '${owner}'`)
             where.push(`balance != '0'`);
             if (contract) where.push(`contract == '${contract}'`);
 
@@ -225,11 +226,11 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
 
         const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
         // SQL Query
-        const table = 'mv_balance_changes_contract'
+        const table = 'balance_changes_contract_historical_mv'
         let query = `SELECT 
-        owner,
+        account,
         new_balance AS balance,
-        block_num as block_number,
+        block_num ,
         toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
     FROM ${table} `;
 
@@ -239,7 +240,7 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
         addBlockFilter(q, blockfilter);
         if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
 
-        let joinSelectQuery = `SELECT owner, MAX(block_number) as block_number FROM (SELECT owner, block_num as block_number,contract FROM ${table} ${blockfilterQuery})`;
+        let joinSelectQuery = `SELECT account, MAX(block_num)  FROM (SELECT account, block_num ,contract FROM ${table} ${blockfilterQuery})`;
         const joinWhereQuery: any = [];
 
         //add where filter to joinQuery
@@ -247,9 +248,9 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
         if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
 
         //Add group by to joinQuery
-        joinSelectQuery += ` GROUP BY owner`
+        joinSelectQuery += ` GROUP BY account`
 
-        query += `JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_number`
+        query += `JOIN (${joinSelectQuery}) as latest ON ${table}.account = latest.account AND ${table}.block_num = latest.block_num`
 
         if (!example) {
             // WHERE statements
@@ -294,18 +295,18 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
 
 
         // SQL Query
-        let table = "Transfers"
-        let mvFromTable = "mv_transfers_from"
-        let mvToTable = "mv_transfers_to"
-        let mvContractTable = "mv_transfers_contract"
+        let table = "transfers"
+        let mvFromTable = "transfers_from_historical_mv"
+        let mvToTable = "transfers_to_historical_mv"
+        let mvContractTable = "transfers_contract_historical_mv"
 
         let query = `SELECT
-        address,
+        contract,
         from,
         to,
         value as amount,
         transaction as transaction_id,
-        block_number,
+        block_num,
         toDateTime(toUnixTimestamp(timestamp)*1000) as timestamp`
 
         if (contract) query += ` FROM ${mvContractTable}`
@@ -319,7 +320,7 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
             const where = [];
 
             // equals
-            if (contract) where.push(`address == '${contract}'`);
+            if (contract) where.push(`contract == '${contract}'`);
             if (from) where.push(`from == '${from}'`);
             if (to) where.push(`to == '${to}'`);
 
@@ -360,15 +361,15 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?
 
 
         // SQL Query
-        let table = "Transfers"
+        let table = "transfers"
 
         let query = `SELECT
-        address,
+        contract,
         from,
         to,
         value as amount,
         transaction as transaction_id,
-        block_number,
+        block_num,
         toDateTime(toUnixTimestamp(timestamp)*1000) as timestamp`
 
         query += ` FROM ${table}`
