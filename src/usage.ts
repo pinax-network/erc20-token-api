@@ -24,8 +24,8 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
         case "/transfers": query = getTransfers(endpoint, query_params, false); break;
         case "/holders": query = getHolders(endpoint, query_params, false); break;
         case "/head": query = `SELECT block_num FROM cursors`; break;
-        case "/transfers/{transaction_id}": query = getTransfer(endpoint, query_params, false); break;
-        case "/contract": query = getContracts(endpoint, query_params, false); break;
+        case "/transfers/{tx_id}": query = getTransfer(endpoint, query_params, false); break;
+        case "/tokens": query = getContracts(endpoint, query_params, false); break;
     }
 
     let query_results;

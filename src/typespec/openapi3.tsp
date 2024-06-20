@@ -143,7 +143,7 @@ interface Usage {
     @route("/supply")
     @get
     supply(
-        @query contract?: Supply.address,
+        @query contract?: Supply.contract,
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
         ...BlockFilter,
@@ -155,10 +155,10 @@ interface Usage {
         @returns One contract.
     */
     @summary("Token contract information")
-    @route("/contract")
+    @route("/tokens")
     @get
-    contract(
-        @query contract?: Supply.address,
+    tokens(
+        @query contract?: Supply.contract,
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
         ...PaginationQueryParams,
@@ -174,7 +174,7 @@ interface Usage {
     transfers(
         @query from?: Transfer.from,
         @query to?: Transfer.to,
-        @query contract?: Transfer.address,
+        @query contract?: Transfer.contract,
         ...BlockRangeFilter,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Transfer[]>>;
@@ -184,10 +184,10 @@ interface Usage {
         @returns Array of transfers.
     */
     @summary("Token transfer")
-    @route("/transfers/{transaction_id}")
+    @route("/transfers/{tx_id}")
     @get
     transfer(
-        @path transaction_id: Transfer.transaction_id,
+        @path tx_id: Transfer.tx_id,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Transfer[]>>;
 

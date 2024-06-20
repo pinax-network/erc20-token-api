@@ -115,96 +115,6 @@
         }
       }
     },
-    "/contract": {
-      "get": {
-        "tags": [
-          "Usage"
-        ],
-        "operationId": "Usage_contract",
-        "summary": "Token contract information",
-        "description": "get Token Contract information.",
-        "parameters": [
-          {
-            "name": "contract",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64",
-              "default": 1
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64",
-              "default": 1
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "One contract.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data",
-                    "meta"
-                  ],
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/TypeSpec.OpenAPI.Contact"
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/ResponseMetadata"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/head": {
       "get": {
         "tags": [
@@ -561,6 +471,96 @@
         }
       }
     },
+    "/tokens": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "operationId": "Usage_tokens",
+        "summary": "Token contract information",
+        "description": "get Token Contract information.",
+        "parameters": [
+          {
+            "name": "contract",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "default": 1
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TypeSpec.OpenAPI.Contact"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/transfers": {
       "get": {
         "tags": [
@@ -668,7 +668,7 @@
         }
       }
     },
-    "/transfers/{transaction_id}": {
+    "/transfers/{tx_id}": {
       "get": {
         "tags": [
           "Usage"
@@ -678,7 +678,7 @@
         "description": "Specific transfer related to a token.",
         "parameters": [
           {
-            "name": "transaction_id",
+            "name": "tx_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -832,7 +832,7 @@
           "change_type",
           "block_num",
           "timestamp",
-          "transaction_id"
+          "tx_id"
         ],
         "properties": {
           "contract": {
@@ -862,7 +862,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "transaction_id": {
+          "tx_id": {
             "type": "string"
           }
         }
@@ -870,7 +870,7 @@
       "Contract": {
         "type": "object",
         "required": [
-          "address",
+          "contract",
           "name",
           "symbol",
           "decimals",
@@ -878,7 +878,7 @@
           "timestamp"
         ],
         "properties": {
-          "address": {
+          "contract": {
             "type": "string"
           },
           "name": {
@@ -1004,13 +1004,13 @@
       "Supply": {
         "type": "object",
         "required": [
-          "address",
+          "contract",
           "supply",
           "block_num",
           "timestamp"
         ],
         "properties": {
-          "address": {
+          "contract": {
             "type": "string"
           },
           "supply": {
@@ -1029,16 +1029,16 @@
       "Transfer": {
         "type": "object",
         "required": [
-          "address",
+          "contract",
           "from",
           "to",
           "value",
           "block_num",
           "timestamp",
-          "transaction_id"
+          "tx_id"
         ],
         "properties": {
-          "address": {
+          "contract": {
             "type": "string"
           },
           "from": {
@@ -1058,7 +1058,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "transaction_id": {
+          "tx_id": {
             "type": "string"
           }
         }

@@ -147,8 +147,8 @@ function ERC20TokenAPI() {
     createUsageEndpoint("/holders");
     createUsageEndpoint("/supply"); // TODO: Same as `balance``
     createUsageEndpoint("/transfers"); // TODO: Redefine `block_range` params
-    createUsageEndpoint("/transfers/{transaction_id}");
-    createUsageEndpoint("/contract");
+    createUsageEndpoint("/transfers/{tx_id}");
+    createUsageEndpoint("/tokens");
     app.notFound((ctx: Context) => APIErrorResponse(ctx, 404, "route_not_found", `Path not found: ${ctx.req.method} ${ctx.req.path}`));
 
     return app;

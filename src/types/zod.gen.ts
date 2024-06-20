@@ -36,12 +36,12 @@ export const BalanceChange = z.object({
   change_type: z.number(),
   block_num: z.number(),
   timestamp: z.number(),
-  transaction_id: z.string(),
+  tx_id: z.string(),
 });
 
 export type Contract = z.infer<typeof Contract>;
 export const Contract = z.object({
-  address: z.string(),
+  contract: z.string(),
   name: z.string(),
   symbol: z.string(),
   decimals: z.number(),
@@ -81,7 +81,7 @@ export const ResponseMetadata = z.object({
 
 export type Supply = z.infer<typeof Supply>;
 export const Supply = z.object({
-  address: z.string(),
+  contract: z.string(),
   supply: z.string(),
   block_num: z.number(),
   timestamp: z.number(),
@@ -89,13 +89,13 @@ export const Supply = z.object({
 
 export type Transfer = z.infer<typeof Transfer>;
 export const Transfer = z.object({
-  address: z.string(),
+  contract: z.string(),
   from: z.string(),
   to: z.string(),
   value: z.string(),
   block_num: z.number(),
   timestamp: z.number(),
-  transaction_id: z.string(),
+  tx_id: z.string(),
 });
 
 export type TypeSpec_OpenAPI_Contact = z.infer<typeof TypeSpec_OpenAPI_Contact>;
@@ -126,25 +126,6 @@ export const get_Usage_balance = {
   }),
   response: z.object({
     data: z.array(BalanceChange),
-    meta: ResponseMetadata,
-  }),
-};
-
-export type get_Usage_contract = typeof get_Usage_contract;
-export const get_Usage_contract = {
-  method: z.literal("GET"),
-  path: z.literal("/contract"),
-  parameters: z.object({
-    query: z.object({
-      contract: z.string().optional(),
-      symbol: z.string().optional(),
-      name: z.string().optional(),
-      limit: z.number().optional(),
-      page: z.number().optional(),
-    }),
-  }),
-  response: z.object({
-    data: TypeSpec_OpenAPI_Contact,
     meta: ResponseMetadata,
   }),
 };
@@ -231,6 +212,25 @@ export const get_Usage_supply = {
   }),
 };
 
+export type get_Usage_tokens = typeof get_Usage_tokens;
+export const get_Usage_tokens = {
+  method: z.literal("GET"),
+  path: z.literal("/tokens"),
+  parameters: z.object({
+    query: z.object({
+      contract: z.string().optional(),
+      symbol: z.string().optional(),
+      name: z.string().optional(),
+      limit: z.number().optional(),
+      page: z.number().optional(),
+    }),
+  }),
+  response: z.object({
+    data: TypeSpec_OpenAPI_Contact,
+    meta: ResponseMetadata,
+  }),
+};
+
 export type get_Usage_transfers = typeof get_Usage_transfers;
 export const get_Usage_transfers = {
   method: z.literal("GET"),
@@ -254,14 +254,14 @@ export const get_Usage_transfers = {
 export type get_Usage_transfer = typeof get_Usage_transfer;
 export const get_Usage_transfer = {
   method: z.literal("GET"),
-  path: z.literal("/transfers/{transaction_id}"),
+  path: z.literal("/transfers/{tx_id}"),
   parameters: z.object({
     query: z.object({
       limit: z.number().optional(),
       page: z.number().optional(),
     }),
     path: z.object({
-      transaction_id: z.string(),
+      tx_id: z.string(),
     }),
   }),
   response: z.object({
@@ -282,15 +282,15 @@ export const get_Docs_version = {
 export const EndpointByMethod = {
   get: {
     "/balance": get_Usage_balance,
-    "/contract": get_Usage_contract,
     "/head": get_Usage_head,
     "/health": get_Monitoring_health,
     "/holders": get_Usage_holders,
     "/metrics": get_Monitoring_metrics,
     "/openapi": get_Docs_openapi,
     "/supply": get_Usage_supply,
+    "/tokens": get_Usage_tokens,
     "/transfers": get_Usage_transfers,
-    "/transfers/{transaction_id}": get_Usage_transfer,
+    "/transfers/{tx_id}": get_Usage_transfer,
     "/version": get_Docs_version,
   },
 };
