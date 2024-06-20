@@ -42,13 +42,13 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
                 ${table}.block_num,
                         ${contractTable}.name as name,
                             ${contractTable}.symbol as symbol,
-                                ${contractTable}.decimals as decimals,
+                                ${contractTable}.decimals as precision,
                                     toUnixTimestamp(${table}.timestamp)*1000 as timestamp
     FROM ${table} `;
 
 
         // JOIN Contracts table
-        query += ` LEFT JOIN Contracts ON ${contractTable}.contract = ${table}.contract`;
+        query += ` LEFT JOIN contracts ON ${contractTable}.contract = ${table}.contract`;
         if (!example) {
             // WHERE statements
             const where = [];
@@ -85,7 +85,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
 
 export function getContracts(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
-    if (endpoint === "/contract") {
+    if (endpoint === "/tokens") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         // Params
@@ -104,7 +104,7 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
     ${table}.contract,
     ${table}.name,
     ${table}.symbol,
-    ${table}.decimals,
+    ${table}.decimals as precision,
     ${table}.block_num,
     toDateTime(toUnixTimestamp(${table}.timestamp) * 1000) as timestamp 
     FROM ${table} `
@@ -150,18 +150,18 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         if (q.account) owner = getAddress(q.account, "account", false)?.toLowerCase();
 
         let table;
+        const contractTable = 'contracts';
         // SQL Query
         if (contract) table = 'balance_changes_contract_historical_mv';
         else table = "balance_changes_account_historical_mv"
 
         let query = `SELECT
-        owner as account,
-        contract,
-        new_balance AS balance,
-        toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp,
-        block_num `
+        ${table}.owner,
+        ${table}.contract,
+        ${table}.new_balance AS balance,
+        toDateTime(toUnixTimestamp(${table}.timestamp)*1000) AS timestamp,
+        ${table}.block_num `
         query += ` FROM ${table}`
-
 
         //Join for latest block between block range selected
         const blockfilter: any = [];
@@ -170,7 +170,7 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
         let joinSelectQuery = "";
 
-        if (contract) joinSelectQuery = `SELECT owner, MAX(block_num)   FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
+        if (contract) joinSelectQuery = `SELECT owner, MAX(block_num) as block_num   FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
         else joinSelectQuery = `SELECT contract, owner, MAX(block_num) as block_num  FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
         const joinWhereQuery: any = [];
         //add where filter to joinQuery
@@ -185,13 +185,12 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         if (contract) query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num`
         else query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num AND ${table}.contract = latest.contract`
 
-
         if (!example) {
             // WHERE statements
             const where = [];
 
             // equals
-            where.push(`account == '${owner}'`)
+            where.push(`owner == '${owner}'`)
             where.push(`balance != '0'`);
             if (contract) where.push(`contract == '${contract}'`);
 
@@ -208,7 +207,23 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
         query += ` LIMIT ${limit} `
         const offset = q.page;
         if (offset) query += ` OFFSET ${offset} `
-        return query;
+
+
+        // add Join contract
+
+        let Allquery = `SELECT 
+        query.owner as account,
+        query.contract,
+        query.balance,
+        ${contractTable}.name as name,
+        ${contractTable}.symbol as symbol,
+        ${contractTable}.decimals as precision,
+        query.timestamp,
+        query.block_num,
+
+        FROM (${query}) as query JOIN ${contractTable} ON query.contract = ${contractTable}.contract`
+
+        return Allquery;
     }
     else {
         return ""
@@ -240,7 +255,7 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
         addBlockFilter(q, blockfilter);
         if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
 
-        let joinSelectQuery = `SELECT account, MAX(block_num)  FROM (SELECT account, block_num ,contract FROM ${table} ${blockfilterQuery})`;
+        let joinSelectQuery = `SELECT account, MAX(block_num) as block_num  FROM (SELECT account, block_num ,contract FROM ${table} ${blockfilterQuery})`;
         const joinWhereQuery: any = [];
 
         //add where filter to joinQuery
@@ -305,7 +320,7 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
         from,
         to,
         value as amount,
-        transaction as transaction_id,
+        tx_id,
         block_num,
         toDateTime(toUnixTimestamp(timestamp)*1000) as timestamp`
 
@@ -348,8 +363,9 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
 
 export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
 
-
-    if (endpoint === "/transfers/{transaction_id}") {
+    console.log("///////////////////////////////////////////////////////", endpoint)
+    console.log("enpoint", endpoint)
+    if (endpoint === "/transfers/{tx_id}") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         let contract;
@@ -357,7 +373,7 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?
         let to;
 
         //  const chain = searchParams.get("chain");
-        const transaction_id = formatTxid(q.transaction_id);
+        const transaction_id = formatTxid(q.tx_id);
 
 
         // SQL Query
@@ -368,7 +384,7 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?
         from,
         to,
         value as amount,
-        transaction as transaction_id,
+        tx_id,
         block_num,
         toDateTime(toUnixTimestamp(timestamp)*1000) as timestamp`
 
@@ -379,12 +395,10 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?
             const where = [];
 
             // equals
-            if (transaction_id) where.push(`transaction == '${transaction_id}'`);
+            if (transaction_id) where.push(`tx_id == '${transaction_id}'`);
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
-            //add ORDER BY and GROUP BY
-            query += ` ORDER BY timestamp DESC`
         }
         return query;
     }

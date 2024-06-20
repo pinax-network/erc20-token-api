@@ -14,13 +14,13 @@ model Supply {
 }
 @@field(Supply.block_num, 1);
 @@field(Supply.timestamp, 2);
-@@field(Supply.address, 3);
+@@field(Supply.contract, 3);
 @@field(Supply.supply, 4);
 
 model Contract {
     ...Models.Contract<WellKnown.Timestamp>;
 }
-@@field(Contract.address, 1);
+@@field(Contract.contract, 1);
 @@field(Contract.name, 2);
 @@field(Contract.symbol, 3);
 @@field(Contract.decimals, 4);
@@ -30,11 +30,11 @@ model Contract {
 model Transfer {
     ...Models.Transfer<WellKnown.Timestamp>;
 }
-@@field(Transfer.address, 1);
+@@field(Transfer.contract, 1);
 @@field(Transfer.from, 2);
 @@field(Transfer.to, 3);
 @@field(Transfer.value, 4);
-@@field(Transfer.transaction_id, 5);
+@@field(Transfer.tx_id, 5);
 @@field(Transfer.block_num, 6);
 @@field(Transfer.timestamp, 7);
 
@@ -48,6 +48,6 @@ model BalanceChange {
 @@field(BalanceChange.amount, 5);
 @@field(BalanceChange.old_balance, 6);
 @@field(BalanceChange.new_balance, 7);
-@@field(BalanceChange.transaction_id, 8);
+@@field(BalanceChange.tx_id, 8);
 @@field(BalanceChange.change_type, 9);
 

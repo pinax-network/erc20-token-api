@@ -7,14 +7,14 @@ package erc20.token.v1;
 import "google/protobuf/timestamp.proto";
 
 message Supply {
-  string address = 3;
+  string contract = 3;
   string supply = 4;
   uint64 block_num = 1;
   google.protobuf.Timestamp timestamp = 2;
 }
 
 message Contract {
-  string address = 1;
+  string contract = 1;
   string name = 2;
   string symbol = 3;
   int64 decimals = 4;
@@ -23,13 +23,13 @@ message Contract {
 }
 
 message Transfer {
-  string address = 1;
+  string contract = 1;
   string from = 2;
   string to = 3;
   string value = 4;
   uint64 block_num = 6;
   google.protobuf.Timestamp timestamp = 7;
-  string transaction_id = 5;
+  string tx_id = 5;
 }
 
 message BalanceChange {
@@ -41,5 +41,5 @@ message BalanceChange {
   int32 change_type = 9;
   uint64 block_num = 1;
   google.protobuf.Timestamp timestamp = 2;
-  string transaction_id = 8;
+  string tx_id = 8;
 }

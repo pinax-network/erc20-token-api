@@ -10,11 +10,11 @@ namespace Models {
 
     model CommonERC20<TimestampType> {
         ...BlockInfo<TimestampType>;
-        transaction_id: string;
+        tx_id: string;
     }
 
     model Transfer<TimestampType> {
-        address: string;
+        contract: string;
         from: string;
         to: string;
         value: string;
@@ -32,13 +32,13 @@ namespace Models {
     }
 
     model Supply<TimestampType> {
-        address: string;
+        contract: string;
         supply: string;
         ...BlockInfo<TimestampType>;
     }
 
     model Contract<TimestampType>{
-        address: string;
+        contract: string;
         name: string;
         symbol: string;
         decimals: int64;
