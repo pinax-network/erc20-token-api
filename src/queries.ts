@@ -137,93 +137,155 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
     }
 }
 
-export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
+
+
+
+function getBalanceChanges_latest(q: any) {
+
+    let contract;
+    let owner;
+
+    if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
+    if (q.account) owner = getAddress(q.account, "account", false)?.toLowerCase();
+
+    let table = 'account_balances'
+    const contractTable = 'contracts';
+    let query = `SELECT
+    ${table}.account,
+    ${table}.contract,
+    ${table}.amount,
+    toDateTime(toUnixTimestamp(${table}.timestamp)*1000) AS timestamp,
+    ${table}.block_num `
+    query += ` FROM ${table}`
+
+    // WHERE statements
+    const where = [];
+
+    // equals
+    where.push(`account == '${owner}'`)
+    where.push(`amount != '0'`);
+    if (contract) where.push(`contract == '${contract}'`);
+
+    // Join WHERE statements with AND
+    if (where.length) query += ` WHERE(${where.join(' AND ')})`;
+
+    //add ORDER BY and GROUP BY
+    query += ` ORDER BY amount DESC`
+
+
+    //ADD limit
+    const limit = parseLimit(q.limit);
+    query += ` LIMIT ${limit} `
+    const offset = q.page;
+    if (offset) query += ` OFFSET ${offset} `
+
+
+    // add Join contract
+
+    let Allquery = `SELECT 
+    query.account,
+    query.contract,
+    query.amount,
+    ${contractTable}.name as name,
+    ${contractTable}.symbol as symbol,
+    ${contractTable}.decimals as precision,
+    query.timestamp,
+    query.block_num,
+
+    FROM (${query}) as query JOIN ${contractTable} ON query.contract = ${contractTable}.contract`
+
+    return Allquery;
+}
+
+function getBalanceChanges_historical(q: any) {
+    let contract;
+    let owner;
+
+    if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
+    if (q.account) owner = getAddress(q.account, "account", false)?.toLowerCase();
+
+    let table;
+    const contractTable = 'contracts';
+    // SQL Query
+    if (contract) table = 'balance_changes_contract_historical_mv';
+    else table = "balance_changes_account_historical_mv"
+
+    let query = `SELECT
+    ${table}.owner,
+    ${table}.contract,
+    ${table}.new_balance AS amount,
+    toDateTime(toUnixTimestamp(${table}.timestamp)*1000) AS timestamp,
+    ${table}.block_num `
+    query += ` FROM ${table}`
+
+    //Join for latest block between block range selected
+    const blockfilter: any = [];
+    let blockfilterQuery = "";
+    addBlockFilter(q, blockfilter);
+    if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
+    let joinSelectQuery = "";
+
+    if (contract) joinSelectQuery = `SELECT owner, MAX(block_num) as block_num   FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
+    else joinSelectQuery = `SELECT contract, owner, MAX(block_num) as block_num  FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
+    const joinWhereQuery: any = [];
+    //add where filter to joinQuery
+    if (contract) joinWhereQuery.push(`contract == '${contract}'`);
+    joinWhereQuery.push(`owner == '${owner}'`);
+    if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
+
+    //Add group by to joinQuery
+    if (contract) joinSelectQuery += ` GROUP BY owner`
+    else joinSelectQuery += ` GROUP BY (owner,contract)`
+
+    if (contract) query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num`
+    else query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num AND ${table}.contract = latest.contract`
+
+    // WHERE statements
+    const where = [];
+
+    // equals
+    where.push(`owner == '${owner}'`)
+    where.push(`amount != '0'`);
+    if (contract) where.push(`contract == '${contract}'`);
+
+    // Join WHERE statements with AND
+    if (where.length) query += ` WHERE(${where.join(' AND ')})`;
+
+
+    //add ORDER BY and GROUP BY
+    query += ` ORDER BY amount DESC`
+
+    //ADD limit
+    const limit = parseLimit(q.limit);
+    query += ` LIMIT ${limit} `
+    const offset = q.page;
+    if (offset) query += ` OFFSET ${offset} `
+
+
+    // add Join contract
+
+    let Allquery = `SELECT 
+    query.owner as account,
+    query.contract,
+    query.amount,
+    ${contractTable}.name as name,
+    ${contractTable}.symbol as symbol,
+    ${contractTable}.decimals as precision,
+    query.timestamp,
+    query.block_num,
+
+    FROM (${query}) as query JOIN ${contractTable} ON query.contract = ${contractTable}.contract`
+
+    return Allquery;
+}
+export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any) {
 
     if (endpoint === "/balance") {
         const q = query_param as ValidUserParams<typeof endpoint>;
-
-
-        //const chain = searchParams.get("chain");
-        let contract;
-        let owner;
-        if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
-        if (q.account) owner = getAddress(q.account, "account", false)?.toLowerCase();
-
-        let table;
-        const contractTable = 'contracts';
-        // SQL Query
-        if (contract) table = 'balance_changes_contract_historical_mv';
-        else table = "balance_changes_account_historical_mv"
-
-        let query = `SELECT
-        ${table}.owner,
-        ${table}.contract,
-        ${table}.new_balance AS balance,
-        toDateTime(toUnixTimestamp(${table}.timestamp)*1000) AS timestamp,
-        ${table}.block_num `
-        query += ` FROM ${table}`
-
-        //Join for latest block between block range selected
-        const blockfilter: any = [];
-        let blockfilterQuery = "";
-        addBlockFilter(q, blockfilter);
-        if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
-        let joinSelectQuery = "";
-
-        if (contract) joinSelectQuery = `SELECT owner, MAX(block_num) as block_num   FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
-        else joinSelectQuery = `SELECT contract, owner, MAX(block_num) as block_num  FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
-        const joinWhereQuery: any = [];
-        //add where filter to joinQuery
-        if (contract) joinWhereQuery.push(`contract == '${contract}'`);
-        joinWhereQuery.push(`owner == '${owner}'`);
-        if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
-
-        //Add group by to joinQuery
-        if (contract) joinSelectQuery += ` GROUP BY owner`
-        else joinSelectQuery += ` GROUP BY (owner,contract)`
-
-        if (contract) query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num`
-        else query += ` JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.owner AND ${table}.block_num = latest.block_num AND ${table}.contract = latest.contract`
-
-        if (!example) {
-            // WHERE statements
-            const where = [];
-
-            // equals
-            where.push(`owner == '${owner}'`)
-            where.push(`balance != '0'`);
-            if (contract) where.push(`contract == '${contract}'`);
-
-            // Join WHERE statements with AND
-            if (where.length) query += ` WHERE(${where.join(' AND ')})`;
-
-
-            //add ORDER BY and GROUP BY
-            query += ` ORDER BY balance DESC`
-        }
-
-        //ADD limit
-        const limit = parseLimit(q.limit);
-        query += ` LIMIT ${limit} `
-        const offset = q.page;
-        if (offset) query += ` OFFSET ${offset} `
-
-
-        // add Join contract
-
-        let Allquery = `SELECT 
-        query.owner as account,
-        query.contract,
-        query.balance,
-        ${contractTable}.name as name,
-        ${contractTable}.symbol as symbol,
-        ${contractTable}.decimals as precision,
-        query.timestamp,
-        query.block_num,
-
-        FROM (${query}) as query JOIN ${contractTable} ON query.contract = ${contractTable}.contract`
-
-        return Allquery;
+        let query;
+        if (q.block_num) query = getBalanceChanges_historical(q);
+        else query = getBalanceChanges_latest(q);
+        return query;
     }
     else {
         return ""
@@ -233,60 +295,99 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any, ex
 }
 
 
-export function getHolders(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
+
+
+
+
+
+function getHolder_latest(q: any) {
+    const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
+    // SQL Query
+    const table = 'token_holders'
+    let query = `SELECT 
+    account,
+    amount,
+    block_num ,
+    toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
+    FROM ${table} `;
+
+    // WHERE statements
+    const where: any = [];
+    if (contract) where.push(`contract == '${contract}'`);
+    where.push(`amount != '0'`);
+
+    // Join WHERE statements with AND
+    if (where.length) query += ` WHERE(${where.join(' AND ')})`;
+
+    //add ORDER BY and GROUP BY
+    query += ` ORDER BY amount DESC`
+
+    const limit = parseLimit(q.limit, 100);
+    if (limit) query += ` LIMIT ${limit} `;
+    const offset = q.page;
+    if (offset) query += ` OFFSET ${offset} `
+
+    return query;
+}
+
+function getHolder_historical(q: any) {
+
+    const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
+    // SQL Query
+    const table = 'balance_changes_contract_historical_mv'
+    let query = `SELECT 
+    owner as account,
+    new_balance AS balance,
+    block_num ,
+    toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
+FROM ${table} `;
+
+    //Join for latest block between block range selected
+    const blockfilter: any = [];
+    let blockfilterQuery = "";
+    addBlockFilter(q, blockfilter);
+    if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
+
+    let joinSelectQuery = `SELECT account, MAX(block_num) as block_num  FROM (SELECT owner as account, block_num ,contract FROM ${table} ${blockfilterQuery})`;
+    const joinWhereQuery: any = [];
+
+    //add where filter to joinQuery
+    joinWhereQuery.push(`contract == '${contract}'`);
+    if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
+
+    //Add group by to joinQuery
+    joinSelectQuery += ` GROUP BY account`
+
+    query += `JOIN (${joinSelectQuery}) as latest ON ${table}.owner = latest.account AND ${table}.block_num = latest.block_num`
+
+    // WHERE statements
+    const where: any = [];
+    if (contract) where.push(`contract == '${contract}'`);
+    where.push(`amount != '0'`);
+
+    // Join WHERE statements with AND
+    if (where.length) query += ` WHERE(${where.join(' AND ')})`;
+
+    //add ORDER BY and GROUP BY
+    query += ` ORDER BY amount DESC`
+
+    const limit = parseLimit(q.limit, 100);
+    if (limit) query += ` LIMIT ${limit} `;
+    const offset = q.page;
+    if (offset) query += ` OFFSET ${offset} `
+
+    return query;
+}
+
+export function getHolders(endpoint: UsageEndpoints, query_param: any) {
 
 
     if (endpoint === "/holders") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
-        const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
-        // SQL Query
-        const table = 'balance_changes_contract_historical_mv'
-        let query = `SELECT 
-        account,
-        new_balance AS balance,
-        block_num ,
-        toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
-    FROM ${table} `;
-
-        //Join for latest block between block range selected
-        const blockfilter: any = [];
-        let blockfilterQuery = "";
-        addBlockFilter(q, blockfilter);
-        if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
-
-        let joinSelectQuery = `SELECT account, MAX(block_num) as block_num  FROM (SELECT account, block_num ,contract FROM ${table} ${blockfilterQuery})`;
-        const joinWhereQuery: any = [];
-
-        //add where filter to joinQuery
-        joinWhereQuery.push(`contract == '${contract}'`);
-        if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
-
-        //Add group by to joinQuery
-        joinSelectQuery += ` GROUP BY account`
-
-        query += `JOIN (${joinSelectQuery}) as latest ON ${table}.account = latest.account AND ${table}.block_num = latest.block_num`
-
-        if (!example) {
-            // WHERE statements
-            const where: any = [];
-            if (contract) where.push(`contract == '${contract}'`);
-            where.push(`balance != '0'`);
-
-            // Join WHERE statements with AND
-            if (where.length) query += ` WHERE(${where.join(' AND ')})`;
-
-            //add ORDER BY and GROUP BY
-            query += ` ORDER BY balance DESC`
-        }
-
-        const limit = parseLimit(q.limit, 100);
-        if (limit) query += ` LIMIT ${limit} `;
-        const offset = q.page;
-        if (offset) query += ` OFFSET ${offset} `
-
-
-        console.log(query)
+        let query;
+        if (q.block_num) query = getHolder_historical(q);
+        else query = getHolder_latest(q);
         return query;
     }
     else {
@@ -294,7 +395,7 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any, example?:
     }
 }
 
-export function getTransfers(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
+export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
 
 
     if (endpoint === "/transfers") {
@@ -330,23 +431,23 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
         else if (!contract && from && to) query += ` FROM ${mvFromTable}`
         else query += ` FROM ${table}`
 
-        if (!example) {
-            // WHERE statements
-            const where = [];
 
-            // equals
-            if (contract) where.push(`contract == '${contract}'`);
-            if (from) where.push(`from == '${from}'`);
-            if (to) where.push(`to == '${to}'`);
+        // WHERE statements
+        const where = [];
 
-            // timestamp and block filter
-            addBlockRangeFilter(q, where);
+        // equals
+        if (contract) where.push(`contract == '${contract}'`);
+        if (from) where.push(`from == '${from}'`);
+        if (to) where.push(`to == '${to}'`);
 
-            // Join WHERE statements with AND
-            if (where.length) query += ` WHERE(${where.join(' AND ')})`;
-            //add ORDER BY and GROUP BY
-            query += ` ORDER BY timestamp DESC`
-        }
+        // timestamp and block filter
+        addBlockRangeFilter(q, where);
+
+        // Join WHERE statements with AND
+        if (where.length) query += ` WHERE(${where.join(' AND ')})`;
+        //add ORDER BY and GROUP BY
+        query += ` ORDER BY timestamp DESC`
+
 
         //ADD limit
         const limit = parseLimit(q.limit, 100);
@@ -361,7 +462,7 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any, example
 }
 
 
-export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
+export function getTransfer(endpoint: UsageEndpoints, query_param: any) {
 
     console.log("///////////////////////////////////////////////////////", endpoint)
     console.log("enpoint", endpoint)
@@ -390,16 +491,16 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any, example?
 
         query += ` FROM ${table}`
 
-        if (!example) {
-            // WHERE statements
-            const where = [];
 
-            // equals
-            if (transaction_id) where.push(`tx_id == '${transaction_id}'`);
+        // WHERE statements
+        const where = [];
 
-            // Join WHERE statements with AND
-            if (where.length) query += ` WHERE(${where.join(' AND ')})`;
-        }
+        // equals
+        if (transaction_id) where.push(`tx_id == '${transaction_id}'`);
+
+        // Join WHERE statements with AND
+        if (where.length) query += ` WHERE(${where.join(' AND ')})`;
+
         return query;
     }
     else {

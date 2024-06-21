@@ -48,8 +48,8 @@ AS
 SELECT owner as account,
        contract,
        amount,
-       block_num            AS updated_at_block_num,
-       timestamp            AS updated_at_timestamp,
+       block_num,
+       timestamp,
        if(amount > 0, 0, 1) AS is_deleted
 FROM balance_changes;
 
@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS account_balances
     contract             String,
     amount               Int64,
     block_num            UInt32,
+    timestamp            DateTime,
     is_deleted           UInt8
 )
     ENGINE = ReplacingMergeTree(block_num, is_deleted)
@@ -71,8 +72,8 @@ AS
 SELECT owner as account,
        contract,
        amount,
-       block_num            AS updated_at_block_num,
-       timestamp            AS updated_at_timestamp,
+       block_num, 
+       timestamp,
        if(amount > 0, 0, 1) AS is_deleted
 FROM balance_changes;
 
