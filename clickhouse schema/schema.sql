@@ -17,28 +17,28 @@ ORDER BY (id,timestamp, block_num);
 -- MV for contract --s
 CREATE MATERIALIZED VIEW balance_changes_contract_historical_mv
 ENGINE = MergeTree()
-ORDER BY (contract, owner)
+ORDER BY (contract, owner,block_num)
 POPULATE
 AS SELECT * FROM balance_changes;
 
 -- MV for owner --
 CREATE MATERIALIZED VIEW balance_changes_account_historical_mv
 ENGINE = MergeTree()
-ORDER BY (owner, contract)
+ORDER BY (owner, contract,block_num)
 POPULATE
 AS SELECT * FROM balance_changes;
 
 
 CREATE TABLE IF NOT EXISTS token_holders
 (
-    account              String,
+    account              FixedString(40),
     contract             String,
-    amount               Int64,
-    block_num            UInt64,
-    timestamp            DateTime,
-    is_deleted           UInt8
+    amount               UInt256,
+    block_num            UInt32(),
+    timestamp            DateTime64(3, 'UTC'),
+    tx_id                FixedString(64)
 )
-    ENGINE = ReplacingMergeTree(block_num, is_deleted)
+    ENGINE = ReplacingMergeTree(block_num)
         PRIMARY KEY (contract,account)
         ORDER BY (contract, account);
 
@@ -47,22 +47,22 @@ CREATE MATERIALIZED VIEW token_holders_mv
 AS
 SELECT owner as account,
        contract,
-       amount,
+       new_balance as amount,
        block_num,
        timestamp,
-       if(amount > 0, 0, 1) AS is_deleted
+       transaction_id as tx_id
 FROM balance_changes;
 
 CREATE TABLE IF NOT EXISTS account_balances
 (
-    account              String,
+    account              FixedString(40),
     contract             String,
-    amount               Int64,
-    block_num            UInt32,
-    timestamp            DateTime,
-    is_deleted           UInt8
+    amount               UInt256,
+    block_num            UInt32(),
+    timestamp            DateTime64(3, 'UTC'),
+    tx_id                FixedString(64)
 )
-    ENGINE = ReplacingMergeTree(block_num, is_deleted)
+    ENGINE = ReplacingMergeTree(block_num)
         PRIMARY KEY (account,contract)
         ORDER BY (account,contract);
 
@@ -74,7 +74,7 @@ SELECT owner as account,
        amount,
        block_num, 
        timestamp,
-       if(amount > 0, 0, 1) AS is_deleted
+       transaction_id as tx_id
 FROM balance_changes;
 
 

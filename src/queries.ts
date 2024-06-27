@@ -156,7 +156,7 @@ function getBalanceChanges_latest(q: any) {
     ${table}.amount,
     toDateTime(toUnixTimestamp(${table}.timestamp)*1000) AS timestamp,
     ${table}.block_num `
-    query += ` FROM ${table}`
+    query += ` FROM ${table} FINAL`
 
     // WHERE statements
     const where = [];
@@ -309,7 +309,7 @@ function getHolder_latest(q: any) {
     amount,
     block_num ,
     toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
-    FROM ${table} `;
+    FROM ${table} FINAL`;
 
     // WHERE statements
     const where: any = [];
@@ -337,7 +337,7 @@ function getHolder_historical(q: any) {
     const table = 'balance_changes_contract_historical_mv'
     let query = `SELECT 
     owner as account,
-    new_balance AS balance,
+    new_balance AS amount,
     block_num ,
     toDateTime(toUnixTimestamp(timestamp)*1000) AS timestamp
 FROM ${table} `;
