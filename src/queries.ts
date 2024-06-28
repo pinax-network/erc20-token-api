@@ -2,6 +2,7 @@ import { DEFAULT_SORT_BY } from "./config.js";
 import { getAddress, parseLimit, parseTimestamp, formatTxid } from "./utils.js";
 import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParams } from "./types/api.js";
 import { Contract } from "ethers";
+import { SupportedChains } from "./types/zod.gen.js";
 
 export function addBlockFilter(q: any, where: any[]) {
     if (q.block_num) where.push(`block_num <= ${q.block_num}`);
@@ -20,9 +21,26 @@ export function addBlockRangeFilter(q: any, where: any[]) {
 }
 
 
+export function getChains() {
+
+
+    //ADD more chains if needed
+    let supportedChain = ['eth'];
+    let queries = [];
+
+    // Use a for loop to iterate over each item
+    for (const chain of supportedChain) {
+        queries.push(`SELECT '${chain}' as chain, MAX(block_num) as block_num FROM ${chain}_erc20_token.cursors`)
+    }
+
+    let query = queries.join(' UNION ALL ');
+    return query;
+}
+
+
 export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
 
-    if (endpoint === "/supply") {
+    if (endpoint === "/{chain}/supply") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         let address;
@@ -85,7 +103,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
 
 export function getContracts(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
-    if (endpoint === "/tokens") {
+    if (endpoint === "/{chain}/tokens") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         // Params
@@ -280,7 +298,7 @@ function getBalanceChanges_historical(q: any) {
 }
 export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any) {
 
-    if (endpoint === "/balance") {
+    if (endpoint === "/{chain}/balance") {
         const q = query_param as ValidUserParams<typeof endpoint>;
         let query;
         if (q.block_num) query = getBalanceChanges_historical(q);
@@ -382,7 +400,7 @@ FROM ${table} `;
 export function getHolders(endpoint: UsageEndpoints, query_param: any) {
 
 
-    if (endpoint === "/holders") {
+    if (endpoint === "/{chain}/holders") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         let query;
@@ -398,7 +416,7 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any) {
 export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
 
 
-    if (endpoint === "/transfers") {
+    if (endpoint === "/{chain}/transfers") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         let contract;
@@ -463,10 +481,7 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
 
 
 export function getTransfer(endpoint: UsageEndpoints, query_param: any) {
-
-    console.log("///////////////////////////////////////////////////////", endpoint)
-    console.log("enpoint", endpoint)
-    if (endpoint === "/transfers/{tx_id}") {
+    if (endpoint === "/{chain}/transfers/{tx_id}") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         let contract;
@@ -506,8 +521,4 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any) {
     else {
         return ""
     }
-}
-
-export function getChain() {
-    return `ETH`;
 }
