@@ -21,107 +21,13 @@
     }
   ],
   "paths": {
-    "/balance": {
+    "/chains": {
       "get": {
         "tags": [
           "Usage"
         ],
-        "operationId": "Usage_balance",
-        "summary": "Token balance",
-        "description": "Balances of an account.",
-        "parameters": [
-          {
-            "name": "contract",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "account",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "block_num",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64",
-              "default": 1
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64",
-              "default": 1
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Array of balances.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data",
-                    "meta"
-                  ],
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BalanceChange"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/ResponseMetadata"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/head": {
-      "get": {
-        "tags": [
-          "Usage"
-        ],
-        "operationId": "Usage_head",
-        "summary": "Head block information",
+        "operationId": "Usage_chains",
+        "summary": "Chains and latest block available",
         "description": "Information about the current head block in the database.",
         "parameters": [
           {
@@ -131,7 +37,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 100
             }
           },
           {
@@ -162,12 +68,16 @@
                       "items": {
                         "type": "object",
                         "properties": {
+                          "chain": {
+                            "$ref": "#/components/schemas/SupportedChains"
+                          },
                           "block_num": {
                             "type": "integer",
                             "format": "uint64"
                           }
                         },
                         "required": [
+                          "chain",
                           "block_num"
                         ]
                       }
@@ -209,92 +119,6 @@
               "application/json": {
                 "schema": {
                   "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/holders": {
-      "get": {
-        "tags": [
-          "Usage"
-        ],
-        "operationId": "Usage_holders",
-        "summary": "Token holders",
-        "description": "List of holders of a token.",
-        "parameters": [
-          {
-            "name": "contract",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "block_num",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64",
-              "default": 1
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "uint64",
-              "default": 1
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Array of accounts.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data",
-                    "meta"
-                  ],
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Holder"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/ResponseMetadata"
-                    }
-                  }
                 }
               }
             }
@@ -369,7 +193,236 @@
         }
       }
     },
-    "/supply": {
+    "/version": {
+      "get": {
+        "tags": [
+          "Docs"
+        ],
+        "operationId": "Docs_version",
+        "summary": "API version",
+        "description": "API version and Git short commit hash.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The API version and commit hash.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{chain}/balance": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "operationId": "Usage_balance",
+        "summary": "Token balance",
+        "description": "Balances of an account.",
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SupportedChains"
+            }
+          },
+          {
+            "name": "contract",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "account",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "block_num",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "default": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of balances.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BalanceChange"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{chain}/holders": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "operationId": "Usage_holders",
+        "summary": "Token holders",
+        "description": "List of holders of a token.",
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SupportedChains"
+            }
+          },
+          {
+            "name": "contract",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "block_num",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "default": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of accounts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Holder"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{chain}/supply": {
       "get": {
         "tags": [
           "Usage"
@@ -378,6 +431,14 @@
         "summary": "Token supply",
         "description": "Total supply for a token.",
         "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SupportedChains"
+            }
+          },
           {
             "name": "contract",
             "in": "query",
@@ -418,7 +479,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 100
             }
           },
           {
@@ -471,7 +532,7 @@
         }
       }
     },
-    "/tokens": {
+    "/{chain}/tokens": {
       "get": {
         "tags": [
           "Usage"
@@ -480,6 +541,14 @@
         "summary": "Token contract information",
         "description": "get Token Contract information.",
         "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SupportedChains"
+            }
+          },
           {
             "name": "contract",
             "in": "query",
@@ -511,7 +580,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 100
             }
           },
           {
@@ -561,7 +630,7 @@
         }
       }
     },
-    "/transfers": {
+    "/{chain}/transfers": {
       "get": {
         "tags": [
           "Usage"
@@ -570,6 +639,14 @@
         "summary": "Token transfers",
         "description": "All transfers related to a token.",
         "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SupportedChains"
+            }
+          },
           {
             "name": "from",
             "in": "query",
@@ -615,7 +692,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 100
             }
           },
           {
@@ -668,7 +745,7 @@
         }
       }
     },
-    "/transfers/{tx_id}": {
+    "/{chain}/transfers/{tx_id}": {
       "get": {
         "tags": [
           "Usage"
@@ -677,6 +754,14 @@
         "summary": "Token transfer",
         "description": "Specific transfer related to a token.",
         "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SupportedChains"
+            }
+          },
           {
             "name": "tx_id",
             "in": "path",
@@ -692,7 +777,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 100
             }
           },
           {
@@ -728,39 +813,6 @@
                       "$ref": "#/components/schemas/ResponseMetadata"
                     }
                   }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/version": {
-      "get": {
-        "tags": [
-          "Docs"
-        ],
-        "operationId": "Docs_version",
-        "summary": "API version",
-        "description": "API version and Git short commit hash.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "The API version and commit hash.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Version"
                 }
               }
             }
@@ -1025,6 +1077,12 @@
             "format": "int32"
           }
         }
+      },
+      "SupportedChains": {
+        "type": "string",
+        "enum": [
+          "eth"
+        ]
       },
       "Transfer": {
         "type": "object",

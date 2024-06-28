@@ -142,13 +142,13 @@ function ERC20TokenAPI() {
         }
     );
 
-    createUsageEndpoint("/balance"); // TODO: Maybe separate `block_num`/`timestamp` queries with path parameters (additional response schemas)
-    createUsageEndpoint("/head");
-    createUsageEndpoint("/holders");
-    createUsageEndpoint("/supply"); // TODO: Same as `balance``
-    createUsageEndpoint("/transfers"); // TODO: Redefine `block_range` params
-    createUsageEndpoint("/transfers/{tx_id}");
-    createUsageEndpoint("/tokens");
+    createUsageEndpoint("/{chain}/balance"); // TODO: Maybe separate `block_num`/`timestamp` queries with path parameters (additional response schemas)
+    createUsageEndpoint("/chains");
+    createUsageEndpoint("/{chain}/holders");
+    createUsageEndpoint("/{chain}/supply"); // TODO: Same as `balance``
+    createUsageEndpoint("/{chain}/transfers"); // TODO: Redefine `block_range` params
+    createUsageEndpoint("/{chain}/transfers/{tx_id}");
+    createUsageEndpoint("/{chain}/tokens");
     app.notFound((ctx: Context) => APIErrorResponse(ctx, 404, "route_not_found", `Path not found: ${ctx.req.method} ${ctx.req.path}`));
 
     return app;

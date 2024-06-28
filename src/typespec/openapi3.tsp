@@ -99,12 +99,19 @@ alias AmountFilter = {
 // This also helps preventing self-references in generated `components` for codegen to work properly.
 alias APIResponse<T> = T | APIError;
 alias PaginationQueryParams = {
-    @query limit?: uint64 = 1;
+    @query limit?: uint64 = 100;
     @query page?: uint64 = 1;
 };
 
 // Helper aliases for accessing underlying properties
 alias BlockInfo = Models.BlockInfo<unixTimestamp32>;
+
+
+
+
+enum SupportedChains {
+    ETH: "eth",
+}
 
 @tag("Usage")
 interface Usage {
@@ -113,9 +120,10 @@ interface Usage {
         @returns Array of balances.
     */
     @summary("Token balance")
-    @route("/balance")
+    @route("/{chain}/balance")
     @get
     balance(
+        @path chain: SupportedChains,
         @query contract?: BalanceChange.contract,
         @query account: BalanceChange.owner,
         ...BlockFilter,
@@ -127,9 +135,10 @@ interface Usage {
         @returns Array of accounts.
     */
     @summary("Token holders")
-    @route("/holders")
+    @route("/{chain}/holders")
     @get
     holders(
+        @path chain: SupportedChains,
         @query contract: BalanceChange.contract,
         ...BlockFilter,
         ...PaginationQueryParams,
@@ -140,9 +149,10 @@ interface Usage {
         @returns Array of supplies.
     */
     @summary("Token supply")
-    @route("/supply")
+    @route("/{chain}/supply")
     @get
     supply(
+        @path chain: SupportedChains,
         @query contract?: Supply.contract,
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
@@ -155,9 +165,10 @@ interface Usage {
         @returns One contract.
     */
     @summary("Token contract information")
-    @route("/tokens")
+    @route("/{chain}/tokens")
     @get
     tokens(
+        @path chain: SupportedChains,
         @query contract?: Supply.contract,
         @query symbol?: Contract.symbol,
         @query name?: Contract.name,
@@ -169,9 +180,10 @@ interface Usage {
         @returns Array of transfers.
     */
     @summary("Token transfers")
-    @route("/transfers")
+    @route("/{chain}/transfers")
     @get
     transfers(
+        @path chain: SupportedChains,
         @query from?: Transfer.from,
         @query to?: Transfer.to,
         @query contract?: Transfer.contract,
@@ -184,9 +196,10 @@ interface Usage {
         @returns Array of transfers.
     */
     @summary("Token transfer")
-    @route("/transfers/{tx_id}")
+    @route("/{chain}/transfers/{tx_id}")
     @get
     transfer(
+        @path chain: SupportedChains,
         @path tx_id: Transfer.tx_id,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Transfer[]>>;
@@ -196,10 +209,11 @@ interface Usage {
         Information about the current head block in the database.
         @returns Array of block information.
     */
-        @summary("Head block information")
-        @route("/head")
+        @summary("Chains and latest block available")
+        @route("/chains")
         @get
-        head(...PaginationQueryParams): APIResponse<UsageResponse<{
+        chains(...PaginationQueryParams): APIResponse<UsageResponse<{
+            chain: SupportedChains,
             block_num: BlockInfo.block_num;
         }[]>>;
     

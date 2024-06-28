@@ -87,6 +87,9 @@ export const Supply = z.object({
   timestamp: z.number(),
 });
 
+export type SupportedChains = z.infer<typeof SupportedChains>;
+export const SupportedChains = z.literal("eth");
+
 export type Transfer = z.infer<typeof Transfer>;
 export const Transfer = z.object({
   contract: z.string(),
@@ -111,29 +114,10 @@ export const Version = z.object({
   commit: z.string(),
 });
 
-export type get_Usage_balance = typeof get_Usage_balance;
-export const get_Usage_balance = {
+export type get_Usage_chains = typeof get_Usage_chains;
+export const get_Usage_chains = {
   method: z.literal("GET"),
-  path: z.literal("/balance"),
-  parameters: z.object({
-    query: z.object({
-      contract: z.union([z.string(), z.undefined()]),
-      account: z.string(),
-      block_num: z.union([z.number(), z.undefined()]),
-      limit: z.union([z.number(), z.undefined()]),
-      page: z.union([z.number(), z.undefined()]),
-    }),
-  }),
-  response: z.object({
-    data: z.array(BalanceChange),
-    meta: ResponseMetadata,
-  }),
-};
-
-export type get_Usage_head = typeof get_Usage_head;
-export const get_Usage_head = {
-  method: z.literal("GET"),
-  path: z.literal("/head"),
+  path: z.literal("/chains"),
   parameters: z.object({
     query: z.object({
       limit: z.number().optional(),
@@ -143,6 +127,7 @@ export const get_Usage_head = {
   response: z.object({
     data: z.array(
       z.object({
+        chain: SupportedChains,
         block_num: z.number(),
       }),
     ),
@@ -156,24 +141,6 @@ export const get_Monitoring_health = {
   path: z.literal("/health"),
   parameters: z.never(),
   response: z.string(),
-};
-
-export type get_Usage_holders = typeof get_Usage_holders;
-export const get_Usage_holders = {
-  method: z.literal("GET"),
-  path: z.literal("/holders"),
-  parameters: z.object({
-    query: z.object({
-      contract: z.string(),
-      block_num: z.union([z.number(), z.undefined()]),
-      limit: z.union([z.number(), z.undefined()]),
-      page: z.union([z.number(), z.undefined()]),
-    }),
-  }),
-  response: z.object({
-    data: z.array(Holder),
-    meta: ResponseMetadata,
-  }),
 };
 
 export type get_Monitoring_metrics = typeof get_Monitoring_metrics;
@@ -192,10 +159,61 @@ export const get_Docs_openapi = {
   response: z.unknown(),
 };
 
+export type get_Docs_version = typeof get_Docs_version;
+export const get_Docs_version = {
+  method: z.literal("GET"),
+  path: z.literal("/version"),
+  parameters: z.never(),
+  response: Version,
+};
+
+export type get_Usage_balance = typeof get_Usage_balance;
+export const get_Usage_balance = {
+  method: z.literal("GET"),
+  path: z.literal("/{chain}/balance"),
+  parameters: z.object({
+    query: z.object({
+      contract: z.union([z.string(), z.undefined()]),
+      account: z.string(),
+      block_num: z.union([z.number(), z.undefined()]),
+      limit: z.union([z.number(), z.undefined()]),
+      page: z.union([z.number(), z.undefined()]),
+    }),
+    path: z.object({
+      chain: z.literal("eth"),
+    }),
+  }),
+  response: z.object({
+    data: z.array(BalanceChange),
+    meta: ResponseMetadata,
+  }),
+};
+
+export type get_Usage_holders = typeof get_Usage_holders;
+export const get_Usage_holders = {
+  method: z.literal("GET"),
+  path: z.literal("/{chain}/holders"),
+  parameters: z.object({
+    query: z.object({
+      contract: z.string(),
+      block_num: z.union([z.number(), z.undefined()]),
+      limit: z.union([z.number(), z.undefined()]),
+      page: z.union([z.number(), z.undefined()]),
+    }),
+    path: z.object({
+      chain: z.literal("eth"),
+    }),
+  }),
+  response: z.object({
+    data: z.array(Holder),
+    meta: ResponseMetadata,
+  }),
+};
+
 export type get_Usage_supply = typeof get_Usage_supply;
 export const get_Usage_supply = {
   method: z.literal("GET"),
-  path: z.literal("/supply"),
+  path: z.literal("/{chain}/supply"),
   parameters: z.object({
     query: z.object({
       contract: z.string().optional(),
@@ -204,6 +222,9 @@ export const get_Usage_supply = {
       block_num: z.number().optional(),
       limit: z.number().optional(),
       page: z.number().optional(),
+    }),
+    path: z.object({
+      chain: z.literal("eth"),
     }),
   }),
   response: z.object({
@@ -215,7 +236,7 @@ export const get_Usage_supply = {
 export type get_Usage_tokens = typeof get_Usage_tokens;
 export const get_Usage_tokens = {
   method: z.literal("GET"),
-  path: z.literal("/tokens"),
+  path: z.literal("/{chain}/tokens"),
   parameters: z.object({
     query: z.object({
       contract: z.string().optional(),
@@ -223,6 +244,9 @@ export const get_Usage_tokens = {
       name: z.string().optional(),
       limit: z.number().optional(),
       page: z.number().optional(),
+    }),
+    path: z.object({
+      chain: z.literal("eth"),
     }),
   }),
   response: z.object({
@@ -234,7 +258,7 @@ export const get_Usage_tokens = {
 export type get_Usage_transfers = typeof get_Usage_transfers;
 export const get_Usage_transfers = {
   method: z.literal("GET"),
-  path: z.literal("/transfers"),
+  path: z.literal("/{chain}/transfers"),
   parameters: z.object({
     query: z.object({
       from: z.string().optional(),
@@ -243,6 +267,9 @@ export const get_Usage_transfers = {
       block_range: z.array(z.number()).optional(),
       limit: z.number().optional(),
       page: z.number().optional(),
+    }),
+    path: z.object({
+      chain: z.literal("eth"),
     }),
   }),
   response: z.object({
@@ -254,13 +281,14 @@ export const get_Usage_transfers = {
 export type get_Usage_transfer = typeof get_Usage_transfer;
 export const get_Usage_transfer = {
   method: z.literal("GET"),
-  path: z.literal("/transfers/{tx_id}"),
+  path: z.literal("/{chain}/transfers/{tx_id}"),
   parameters: z.object({
     query: z.object({
       limit: z.number().optional(),
       page: z.number().optional(),
     }),
     path: z.object({
+      chain: z.literal("eth"),
       tx_id: z.string(),
     }),
   }),
@@ -270,28 +298,20 @@ export const get_Usage_transfer = {
   }),
 };
 
-export type get_Docs_version = typeof get_Docs_version;
-export const get_Docs_version = {
-  method: z.literal("GET"),
-  path: z.literal("/version"),
-  parameters: z.never(),
-  response: Version,
-};
-
 // <EndpointByMethod>
 export const EndpointByMethod = {
   get: {
-    "/balance": get_Usage_balance,
-    "/head": get_Usage_head,
+    "/chains": get_Usage_chains,
     "/health": get_Monitoring_health,
-    "/holders": get_Usage_holders,
     "/metrics": get_Monitoring_metrics,
     "/openapi": get_Docs_openapi,
-    "/supply": get_Usage_supply,
-    "/tokens": get_Usage_tokens,
-    "/transfers": get_Usage_transfers,
-    "/transfers/{tx_id}": get_Usage_transfer,
     "/version": get_Docs_version,
+    "/{chain}/balance": get_Usage_balance,
+    "/{chain}/holders": get_Usage_holders,
+    "/{chain}/supply": get_Usage_supply,
+    "/{chain}/tokens": get_Usage_tokens,
+    "/{chain}/transfers": get_Usage_transfers,
+    "/{chain}/transfers/{tx_id}": get_Usage_transfer,
   },
 };
 export type EndpointByMethod = typeof EndpointByMethod;

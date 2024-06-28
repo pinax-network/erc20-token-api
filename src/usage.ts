@@ -1,6 +1,6 @@
 import { makeQuery } from "./clickhouse/makeQuery.js";
 import { APIErrorResponse } from "./utils.js";
-import { getBalanceChanges, getContracts, getTotalSupply, getHolders, getTransfer, getTransfers } from "./queries.js"
+import { getBalanceChanges, getContracts, getTotalSupply, getHolders, getTransfer, getTransfers, getChains } from "./queries.js"
 import type { Context } from "hono";
 import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParams } from "./types/api.js";
 
@@ -19,15 +19,22 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
 
 
     switch (endpoint) {
-        case "/balance": query = getBalanceChanges(endpoint, query_params); break;
-        case "/supply": query = getTotalSupply(endpoint, query_params); break;
-        case "/transfers": query = getTransfers(endpoint, query_params); break;
-        case "/holders": query = getHolders(endpoint, query_params); break;
-        case "/head": query = `SELECT block_num FROM cursors`; break;
-        case "/transfers/{tx_id}": query = getTransfer(endpoint, query_params); break;
-        case "/tokens": query = getContracts(endpoint, query_params); break;
+        case "/{chain}/balance": query = getBalanceChanges(endpoint, query_params); break;
+        case "/{chain}/supply": query = getTotalSupply(endpoint, query_params); break;
+        case "/{chain}/transfers": query = getTransfers(endpoint, query_params); break;
+        case "/{chain}/holders": query = getHolders(endpoint, query_params); break;
+        case "/chains": query = getChains(); break;
+        case "/{chain}/transfers/{tx_id}": query = getTransfer(endpoint, query_params); break;
+        case "/{chain}/tokens": query = getContracts(endpoint, query_params); break;
     }
 
+    //choose Chain
+
+    let finalquery
+    if (endpoint != '/chains') {
+        const q = query_params as ValidUserParams<typeof endpoint>;
+        finalquery = `USE ${q.chain}_erc20_token; ${query}`
+    }
     let query_results;
     try {
         query_results = await makeQuery<EndpointElementReturnType>(query, { ...query_params, offset: query_params.limit * (page - 1) });
