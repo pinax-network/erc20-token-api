@@ -111,6 +111,7 @@ alias BlockInfo = Models.BlockInfo<unixTimestamp32>;
 
 enum SupportedChains {
     ETH: "eth",
+    POLYGON: "polygon",
 }
 
 @tag("Usage")

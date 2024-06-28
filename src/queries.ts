@@ -25,7 +25,7 @@ export function getChains() {
 
 
     //ADD more chains if needed
-    let supportedChain = ['eth'];
+    let supportedChain = ['eth', 'polygon'];
     let queries = [];
 
     // Use a for loop to iterate over each item
