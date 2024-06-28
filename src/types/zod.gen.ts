@@ -88,7 +88,7 @@ export const Supply = z.object({
 });
 
 export type SupportedChains = z.infer<typeof SupportedChains>;
-export const SupportedChains = z.literal("eth");
+export const SupportedChains = z.union([z.literal("eth"), z.literal("polygon")]);
 
 export type Transfer = z.infer<typeof Transfer>;
 export const Transfer = z.object({
@@ -180,7 +180,7 @@ export const get_Usage_balance = {
       page: z.union([z.number(), z.undefined()]),
     }),
     path: z.object({
-      chain: z.literal("eth"),
+      chain: z.union([z.literal("eth"), z.literal("polygon")]),
     }),
   }),
   response: z.object({
@@ -201,7 +201,7 @@ export const get_Usage_holders = {
       page: z.union([z.number(), z.undefined()]),
     }),
     path: z.object({
-      chain: z.literal("eth"),
+      chain: z.union([z.literal("eth"), z.literal("polygon")]),
     }),
   }),
   response: z.object({
@@ -224,7 +224,7 @@ export const get_Usage_supply = {
       page: z.number().optional(),
     }),
     path: z.object({
-      chain: z.literal("eth"),
+      chain: z.union([z.literal("eth"), z.literal("polygon")]),
     }),
   }),
   response: z.object({
@@ -246,7 +246,7 @@ export const get_Usage_tokens = {
       page: z.number().optional(),
     }),
     path: z.object({
-      chain: z.literal("eth"),
+      chain: z.union([z.literal("eth"), z.literal("polygon")]),
     }),
   }),
   response: z.object({
@@ -269,7 +269,7 @@ export const get_Usage_transfers = {
       page: z.number().optional(),
     }),
     path: z.object({
-      chain: z.literal("eth"),
+      chain: z.union([z.literal("eth"), z.literal("polygon")]),
     }),
   }),
   response: z.object({
@@ -288,7 +288,7 @@ export const get_Usage_transfer = {
       page: z.number().optional(),
     }),
     path: z.object({
-      chain: z.literal("eth"),
+      chain: z.union([z.literal("eth"), z.literal("polygon")]),
       tx_id: z.string(),
     }),
   }),
