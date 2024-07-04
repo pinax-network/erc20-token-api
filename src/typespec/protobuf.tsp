@@ -34,9 +34,10 @@ model Transfer {
 @@field(Transfer.from, 2);
 @@field(Transfer.to, 3);
 @@field(Transfer.value, 4);
-@@field(Transfer.tx_id, 5);
-@@field(Transfer.block_num, 6);
-@@field(Transfer.timestamp, 7);
+@@field(Transfer.trx_id, 5);
+@@field(Transfer.action_index, 6);
+@@field(Transfer.block_num, 7);
+@@field(Transfer.timestamp, 8);
 
 model BalanceChange {
     ...Models.BalanceChange<WellKnown.Timestamp>;
@@ -48,6 +49,6 @@ model BalanceChange {
 @@field(BalanceChange.amount, 5);
 @@field(BalanceChange.old_balance, 6);
 @@field(BalanceChange.new_balance, 7);
-@@field(BalanceChange.tx_id, 8);
+@@field(BalanceChange.trx_id, 8);
 @@field(BalanceChange.change_type, 9);
 

@@ -27,9 +27,10 @@ message Transfer {
   string from = 2;
   string to = 3;
   string value = 4;
-  uint64 block_num = 6;
-  google.protobuf.Timestamp timestamp = 7;
-  string tx_id = 5;
+  uint64 block_num = 7;
+  google.protobuf.Timestamp timestamp = 8;
+  string trx_id = 5;
+  uint32 action_index = 6;
 }
 
 message BalanceChange {
@@ -41,5 +42,5 @@ message BalanceChange {
   int32 change_type = 9;
   uint64 block_num = 1;
   google.protobuf.Timestamp timestamp = 2;
-  string tx_id = 8;
+  string trx_id = 8;
 }

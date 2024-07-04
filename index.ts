@@ -9,6 +9,7 @@ import { logger } from './src/logger.js';
 import * as prometheus from './src/prometheus.js';
 import { makeUsageQuery } from "./src/usage.js";
 import { APIErrorResponse } from "./src/utils.js";
+import { fixEndpointParametersCoercion } from "./src/types/api.js";
 
 import type { Context } from "hono";
 import type { EndpointParameters, EndpointReturnTypes, UsageEndpoints } from "./src/types/api.js";
@@ -62,65 +63,14 @@ function ERC20TokenAPI() {
         async (_) => new Response(await prometheus.registry.metrics(), { headers: { "Content-Type": prometheus.registry.contentType } })
     );
 
+    // Call once
+    fixEndpointParametersCoercion();
+
     const createUsageEndpoint = (endpoint: UsageEndpoints) => app.get(
         // Hono using different syntax than OpenAPI for path parameters
         // `/{path_param}` (OpenAPI) VS `/:path_param` (Hono)
-        endpoint.replace(/{([^}]+)}/, ":$1"),
+        endpoint.replace(/{([^}]+)}/g, ":$1"),
         async (ctx: Context) => {
-            // Add type coercion for query and path parameters since the codegen doesn't coerce types natively
-            const endpoint_parameters = Object.values(EndpointByMethod["get"][endpoint].parameters.shape).map(p => p.shape);
-            endpoint_parameters.forEach(
-                // `p` can be query or path parameters
-                (p) => Object.keys(p).forEach(
-                    (key, _) => {
-                        let zod_type = p[key] as ZodTypeAny;
-                        let underlying_zod_type: ZodTypeAny;
-                        let isOptional = false;
-
-                        // Strip default layer for value
-                        if (zod_type instanceof ZodDefault) {
-                            zod_type = zod_type.removeDefault();
-                        }
-
-                        // Detect the underlying type from the codegen
-                        if (zod_type instanceof ZodUnion) {
-                            underlying_zod_type = zod_type.options[0];
-                            isOptional = zod_type.options.some((o: ZodTypeAny) => o instanceof ZodUndefined);
-                        } else if (zod_type instanceof ZodOptional) {
-                            underlying_zod_type = zod_type.unwrap();
-                            isOptional = true;
-                        } else {
-                            underlying_zod_type = zod_type;
-                        }
-
-                        // Query and path user input parameters come as strings and we need to coerce them to the right type using Zod
-                        if (underlying_zod_type instanceof ZodNumber) {
-                            p[key] = z.coerce.number();
-                        } else if (underlying_zod_type instanceof ZodBoolean) {
-                            p[key] = z.coerce.boolean();
-                        } else if (underlying_zod_type instanceof ZodBigInt) {
-                            p[key] = z.coerce.bigint();
-                        } else if (underlying_zod_type instanceof ZodDate) {
-                            p[key] = z.coerce.date();
-                            // Any other type will be coerced as string value directly
-                        } else {
-                            p[key] = z.coerce.string();
-                        }
-
-                        if (isOptional)
-                            p[key] = p[key].optional();
-
-                        // Mark parameters with default values explicitly as a workaround
-                        // See https://github.com/astahmer/typed-openapi/issues/34
-                        if (key == "limit")
-                            p[key] = p[key].default(10);
-                        else if (key == "page")
-                            p[key] = p[key].default(1);
-
-                    }
-                )
-            );
-
             const result = EndpointByMethod["get"][endpoint].parameters.safeParse({
                 query: ctx.req.query(),
                 path: ctx.req.param()
@@ -142,12 +92,13 @@ function ERC20TokenAPI() {
         }
     );
 
-    createUsageEndpoint("/{chain}/balance"); // TODO: Maybe separate `block_num`/`timestamp` queries with path parameters (additional response schemas)
+
+    createUsageEndpoint("/{chain}/balance");
     createUsageEndpoint("/chains");
     createUsageEndpoint("/{chain}/holders");
-    createUsageEndpoint("/{chain}/supply"); // TODO: Same as `balance``
-    createUsageEndpoint("/{chain}/transfers"); // TODO: Redefine `block_range` params
-    createUsageEndpoint("/{chain}/transfers/{tx_id}");
+    createUsageEndpoint("/{chain}/supply");
+    createUsageEndpoint("/{chain}/transfers");
+    createUsageEndpoint("/{chain}/transfers/{trx_id}");
     createUsageEndpoint("/{chain}/tokens");
     app.notFound((ctx: Context) => APIErrorResponse(ctx, 404, "route_not_found", `Path not found: ${ctx.req.method} ${ctx.req.path}`));
 
