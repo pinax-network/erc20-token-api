@@ -116,16 +116,18 @@ AS SELECT * FROM supply;
 
 
 CREATE TABLE IF NOT EXISTS transfers  (
+    'id' String,
     contract FixedString(40),
     `from` String,
     `to` String,
     value String,
     tx_id String,
+    action_index UInt32(),
     block_num   UInt32(),
     timestamp       DateTime64(3, 'UTC'),
 )
-ENGINE = MergeTree PRIMARY KEY ("tx_id")
-ORDER BY (tx_id,block_num,timestamp);
+ENGINE = MergeTree PRIMARY KEY ("id")
+ORDER BY (id,tx_id,block_num,timestamp);
 
 
 -- MV for contract --

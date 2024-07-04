@@ -36,7 +36,7 @@ export const BalanceChange = z.object({
   change_type: z.number(),
   block_num: z.number(),
   timestamp: z.number(),
-  tx_id: z.string(),
+  trx_id: z.string(),
 });
 
 export type Contract = z.infer<typeof Contract>;
@@ -98,7 +98,8 @@ export const Transfer = z.object({
   value: z.string(),
   block_num: z.number(),
   timestamp: z.number(),
-  tx_id: z.string(),
+  trx_id: z.string(),
+  action_index: z.number(),
 });
 
 export type TypeSpec_OpenAPI_Contact = z.infer<typeof TypeSpec_OpenAPI_Contact>;
@@ -281,7 +282,7 @@ export const get_Usage_transfers = {
 export type get_Usage_transfer = typeof get_Usage_transfer;
 export const get_Usage_transfer = {
   method: z.literal("GET"),
-  path: z.literal("/{chain}/transfers/{tx_id}"),
+  path: z.literal("/{chain}/transfers/{trx_id}"),
   parameters: z.object({
     query: z.object({
       limit: z.number().optional(),
@@ -289,7 +290,7 @@ export const get_Usage_transfer = {
     }),
     path: z.object({
       chain: z.union([z.literal("eth"), z.literal("polygon")]),
-      tx_id: z.string(),
+      trx_id: z.string(),
     }),
   }),
   response: z.object({
@@ -311,7 +312,7 @@ export const EndpointByMethod = {
     "/{chain}/supply": get_Usage_supply,
     "/{chain}/tokens": get_Usage_tokens,
     "/{chain}/transfers": get_Usage_transfers,
-    "/{chain}/transfers/{tx_id}": get_Usage_transfer,
+    "/{chain}/transfers/{trx_id}": get_Usage_transfer,
   },
 };
 export type EndpointByMethod = typeof EndpointByMethod;

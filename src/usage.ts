@@ -24,18 +24,12 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
         case "/{chain}/transfers": query = getTransfers(endpoint, query_params); break;
         case "/{chain}/holders": query = getHolders(endpoint, query_params); break;
         case "/chains": query = getChains(); break;
-        case "/{chain}/transfers/{tx_id}": query = getTransfer(endpoint, query_params); break;
+        case "/{chain}/transfers/{trx_id}": query = getTransfer(endpoint, query_params); break;
         case "/{chain}/tokens": query = getContracts(endpoint, query_params); break;
     }
 
-    //choose Chain
-
-    let finalquery
-    if (endpoint != '/chains') {
-        const q = query_params as ValidUserParams<typeof endpoint>;
-        finalquery = `USE ${q.chain}_erc20_token; ${query}`
-    }
     let query_results;
+
     try {
         query_results = await makeQuery<EndpointElementReturnType>(query, { ...query_params, offset: query_params.limit * (page - 1) });
     } catch (err) {

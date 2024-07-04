@@ -745,7 +745,7 @@
         }
       }
     },
-    "/{chain}/transfers/{tx_id}": {
+    "/{chain}/transfers/{trx_id}": {
       "get": {
         "tags": [
           "Usage"
@@ -763,7 +763,7 @@
             }
           },
           {
-            "name": "tx_id",
+            "name": "trx_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -884,7 +884,7 @@
           "change_type",
           "block_num",
           "timestamp",
-          "tx_id"
+          "trx_id"
         ],
         "properties": {
           "contract": {
@@ -914,7 +914,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "tx_id": {
+          "trx_id": {
             "type": "string"
           }
         }
@@ -1094,7 +1094,8 @@
           "value",
           "block_num",
           "timestamp",
-          "tx_id"
+          "trx_id",
+          "action_index"
         ],
         "properties": {
           "contract": {
@@ -1117,8 +1118,12 @@
             "type": "integer",
             "format": "int32"
           },
-          "tx_id": {
+          "trx_id": {
             "type": "string"
+          },
+          "action_index": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },

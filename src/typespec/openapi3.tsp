@@ -197,11 +197,11 @@ interface Usage {
         @returns Array of transfers.
     */
     @summary("Token transfer")
-    @route("/{chain}/transfers/{tx_id}")
+    @route("/{chain}/transfers/{trx_id}")
     @get
     transfer(
         @path chain: SupportedChains,
-        @path tx_id: Transfer.tx_id,
+        @path trx_id: Models.CommonERC20.trx_id,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Transfer[]>>;
 

@@ -10,7 +10,7 @@ namespace Models {
 
     model CommonERC20<TimestampType> {
         ...BlockInfo<TimestampType>;
-        tx_id: string;
+        trx_id: string;
     }
 
     model Transfer<TimestampType> {
@@ -19,6 +19,7 @@ namespace Models {
         to: string;
         value: string;
         ...CommonERC20<TimestampType>;
+        action_index: uint32;
     }
 
     model BalanceChange<TimestampType> {
