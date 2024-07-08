@@ -52,8 +52,8 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
         name = q.name?.toLowerCase();
 
         // Query
-        const table = `polygon_erc20_token.mv_supply_contract`
-        const contractTable = `polygon_erc20_token.contracts`;
+        const table = `${q.chain}_erc20_token.mv_supply_contract`
+        const contractTable = `${q.chain}_erc20_token.contracts`;
         let query = `SELECT
         ${table}.contract,
         ${table}.supply as supply,
@@ -328,7 +328,7 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any) {
 function getHolder_latest(q: any) {
     const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
     // SQL Query
-    const table = `${q.chain}_erc20_token.token_holders`
+    const table = `${q.chain}_erc20_token.token_holders_mv`
     let query = `SELECT 
     account,
     amount,
