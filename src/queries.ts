@@ -4,20 +4,35 @@ import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParam
 import { Contract } from "ethers";
 import { SupportedChains } from "./types/zod.gen.js";
 
-export function addBlockFilter(q: any, where: any[]) {
-    if (q.block_num) where.push(`block_num <= ${q.block_num}`);
+export function addBlockFilter(q: any, additional_query_params: any, where: any[]) {
+
+
+    if (q.block_num) {
+        const max_block = q.block_num;
+        where.push(`block_num <= {max_block : int}`);
+        additional_query_params = { ...additional_query_params, max_block }
+
+    }
+    return additional_query_params;
+
+
 }
 
-export function addBlockRangeFilter(q: any, where: any[]) {
+export function addBlockRangeFilter(q: any, additional_query_params: any, where: any[]) {
 
     if (q.block_range && q.block_range != '0') {
         const parts = q.block_range.split(',');
-        const block1 = parseInt(parts[0], 10);
-        const block2 = parseInt(parts[1], 10);
+        const min_block = parseInt(parts[0], 10);
+        const max_block = parseInt(parts[1], 10);
 
-        if (block1 && block2) where.push(`block_num >= ${block1} AND block_num <= ${block2}`)
-        else where.push(`block_num <= ${block1}`)
+        if (min_block && max_block) where.push(`block_num >= {min_block : int} AND block_num <= {max_block : int}`)
+        else where.push(`block_num <= {max_block : int}`)
+
+        additional_query_params = { ...additional_query_params, min_block, max_block }
+
     };
+
+    return additional_query_params;
 }
 
 
@@ -43,13 +58,12 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
     if (endpoint === "/{chain}/supply") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
-        let address;
-        let symbol;
-        let name;
-        if (q.contract) address = getAddress(q.contract, "contract", false)?.toLowerCase();
-        // const chain = searchParams.get("chain");
-        symbol = q.symbol?.toLowerCase();
-        name = q.name?.toLowerCase();
+        let contract = q.contract;
+        let symbol = q.symbol;
+        let name = q.name;
+
+        let additional_query_params = {};
+
 
         // Query
         const table = `${q.chain}_erc20_token.mv_supply_contract`
@@ -73,13 +87,13 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
             const where = [];
 
             // equals
-            if (address) where.push(`${table}.contract ='${address}'`);
+            if (contract) where.push(`${table}.contract = {contract : string}`);
 
             // timestamp and block filter
-            addBlockFilter(q, where);
+            additional_query_params = addBlockFilter(q, additional_query_params, where);
 
-            if (symbol) where.push(`LOWER(symbol) = '${symbol}'`);
-            if (name) where.push(`LOWER(name) = '${name}'`);
+            if (symbol) where.push(`LOWER(symbol) = {symbol : string} `);
+            if (name) where.push(`LOWER(name) = {name : string} `);
 
 
             // Join WHERE statements with AND
@@ -90,17 +104,17 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
             query += ` ORDER BY block_num ${DEFAULT_SORT_BY} `
 
         }
-        const limit = parseLimit(q.limit);
-        query += ` LIMIT ${limit} `
-        let offset;
-        if (q.page) offset = q.page * limit;
-        if (offset) query += ` OFFSET ${offset} `
 
-        console.log(query)
-        return query;
+        query += ` LIMIT {limit: int} `
+
+        if (q.page) query += ` OFFSET {offset : int} `
+
+        return { query, additional_query_params };
     }
     else {
-        return ""
+        let query = "";
+        let additional_query_params = {};
+        return { query, additional_query_params };
     }
 }
 
@@ -110,15 +124,9 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
     if (endpoint === "/{chain}/tokens") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
-        // Params
-        //const chain = searchParams.get("chain");
-        let address;
-        let symbol;
-        let name;
-
-        if (q.contract) address = getAddress(q.contract, "contract", false)?.toLowerCase();
-        if (q.symbol) symbol = q.symbol?.toLowerCase();
-        if (q.name) name = q.name?.toLowerCase();
+        let contract = q.contract;
+        let symbol = q.symbol;
+        let name = q.name;
 
         // Query
         const table = `${q.chain}_erc20_token.contracts`
@@ -135,9 +143,9 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
         if (!example) {
             // WHERE statements
             const where = [];
-            if (address) where.push(`contract == '${address}'`);
-            if (symbol) where.push(`LOWER(symbol) == '${symbol}'`);
-            if (name) where.push(`LOWER(name) == '${name}'`);
+            if (contract) where.push(`contract = {contract : string}`);
+            if (symbol) where.push(`LOWER(symbol) = {symbol : string} `);
+            if (name) where.push(`LOWER(name) = {name : string} `);
 
 
             // Join WHERE statements with AND
@@ -148,11 +156,10 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
             query += ` ORDER BY block_num ${DEFAULT_SORT_BY} `
 
         }
-        const limit = parseLimit(q.limit);
-        query += ` LIMIT ${limit} `
-        let offset;
-        if (q.page) offset = q.page * limit;
-        if (offset) query += ` OFFSET ${offset} `
+
+        query += ` LIMIT {limit : int} `
+        if (q.page) query += ` OFFSET {offset: int} `
+
         return query;
     }
     else {
@@ -165,14 +172,11 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
 
 function getBalanceChanges_latest(q: any) {
 
-    let contract;
-    let owner;
+    let contract = q.contract;
+    let account = q.account;
 
-    if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
-    if (q.account) owner = getAddress(q.account, "account", false)?.toLowerCase();
-
-    let table = `${q.chain}_erc20_token.account_balances`
-    const contractTable = `${q.chain}_erc20_token.contracts`;
+    let table = `{chain : string }_erc20_token.account_balances`
+    const contractTable = `{chain : string }_erc20_token.contracts`;
     let query = `SELECT
     ${table}.account,
     ${table}.contract,
@@ -185,9 +189,9 @@ function getBalanceChanges_latest(q: any) {
     const where = [];
 
     // equals
-    where.push(`account == '${owner}'`)
+    where.push(`account = {account : string}`)
     where.push(`amount != '0'`);
-    if (contract) where.push(`contract == '${contract}'`);
+    if (contract) where.push(`contract = {contract : string}`);
 
     // Join WHERE statements with AND
     if (where.length) query += ` WHERE(${where.join(' AND ')})`;
@@ -197,11 +201,9 @@ function getBalanceChanges_latest(q: any) {
 
 
     //ADD limit
-    const limit = parseLimit(q.limit);
-    query += ` LIMIT ${limit} `
-    let offset;
-    if (q.page) offset = q.page * limit;
-    if (offset) query += ` OFFSET ${offset} `
+
+    query += ` LIMIT {limit: int} `
+    if (q.page) query += ` OFFSET {offset : int} `
 
 
     // add Join contract
@@ -222,17 +224,15 @@ function getBalanceChanges_latest(q: any) {
 }
 
 function getBalanceChanges_historical(q: any) {
-    let contract;
-    let owner;
-
-    if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
-    if (q.account) owner = getAddress(q.account, "account", false)?.toLowerCase();
+    let contract = q.contract;
+    let account = q.account;
+    let additional_query_params = {};
 
     let table;
-    const contractTable = `${q.chain}_erc20_token.contracts`;
+    const contractTable = `{chain : string}_erc20_token.contracts`;
     // SQL Query
-    if (contract) table = `${q.chain}_erc20_token.balance_changes_contract_historical_mv`;
-    else table = `${q.chain}_erc20_token.balance_changes_account_historical_mv`
+    if (contract) table = `{chain : string}_erc20_token.balance_changes_contract_historical_mv`;
+    else table = `{chain : string}_erc20_token.balance_changes_account_historical_mv`
 
     let query = `SELECT
     ${table}.owner,
@@ -245,7 +245,7 @@ function getBalanceChanges_historical(q: any) {
     //Join for latest block between block range selected
     const blockfilter: any = [];
     let blockfilterQuery = "";
-    addBlockFilter(q, blockfilter);
+    additional_query_params = addBlockFilter(q, additional_query_params, blockfilter);
     if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
     let joinSelectQuery = "";
 
@@ -253,8 +253,8 @@ function getBalanceChanges_historical(q: any) {
     else joinSelectQuery = `SELECT contract, owner, MAX(block_num) as block_num  FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
     const joinWhereQuery: any = [];
     //add where filter to joinQuery
-    if (contract) joinWhereQuery.push(`contract == '${contract}'`);
-    joinWhereQuery.push(`owner == '${owner}'`);
+    if (contract) joinWhereQuery.push(`contract = {contract : string}`);
+    joinWhereQuery.push(`owner = {account : string}`);
     if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
 
     //Add group by to joinQuery
@@ -268,9 +268,9 @@ function getBalanceChanges_historical(q: any) {
     const where = [];
 
     // equals
-    where.push(`owner == '${owner}'`)
+    where.push(`owner = {account : string}`)
     where.push(`amount != '0'`);
-    if (contract) where.push(`contract == '${contract}'`);
+    if (contract) where.push(`contract = {contract : string}`);
 
     // Join WHERE statements with AND
     if (where.length) query += ` WHERE(${where.join(' AND ')})`;
@@ -280,11 +280,10 @@ function getBalanceChanges_historical(q: any) {
     query += ` ORDER BY amount DESC`
 
     //ADD limit
-    const limit = parseLimit(q.limit);
-    query += ` LIMIT ${limit} `
-    let offset;
-    if (q.page) offset = q.page * limit;
-    if (offset) query += ` OFFSET ${offset} `
+
+    query += ` LIMIT {limit: int}`
+
+    if (q.page) query += ` OFFSET {offset : int}`
 
 
     // add Join contract
@@ -301,32 +300,32 @@ function getBalanceChanges_historical(q: any) {
 
     FROM (${query}) as query JOIN ${contractTable} ON query.contract = ${contractTable}.contract`
 
-    return Allquery;
+    return { query: Allquery, additional_query_params };
 }
 export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any) {
 
     if (endpoint === "/{chain}/balance") {
         const q = query_param as ValidUserParams<typeof endpoint>;
         let query;
-        if (q.block_num) query = getBalanceChanges_historical(q);
+        let additional_query_params = {};
+        if (q.block_num) {
+            ({ query, additional_query_params } = getBalanceChanges_historical(q));
+        }
         else query = getBalanceChanges_latest(q);
-        return query;
+        return { query, additional_query_params };
     }
     else {
-        return ""
+        let query = "";
+        let additional_query_params = {};
+        return { query, additional_query_params };
     }
 
 
 }
 
 
-
-
-
-
-
 function getHolder_latest(q: any) {
-    const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
+    let contract = q.contract;
     // SQL Query
     const table = `${q.chain}_erc20_token.token_holders_mv`
     let query = `SELECT 
@@ -338,7 +337,7 @@ function getHolder_latest(q: any) {
 
     // WHERE statements
     const where: any = [];
-    if (contract) where.push(`contract == '${contract}'`);
+    if (contract) where.push(`contract = {contract : string}`);
     where.push(`amount != '0'`);
 
     // Join WHERE statements with AND
@@ -347,18 +346,17 @@ function getHolder_latest(q: any) {
     //add ORDER BY and GROUP BY
     query += ` ORDER BY amount DESC`
 
-    const limit = parseLimit(q.limit, 100);
-    if (limit) query += ` LIMIT ${limit} `;
-    let offset;
-    if (q.page) offset = q.page * limit;
-    if (offset) query += ` OFFSET ${offset} `
+    query += ` LIMIT {limit: int} `;
+
+    if (q.page) query += ` OFFSET {offset : int}`
 
     return query;
 }
 
 function getHolder_historical(q: any) {
 
-    const contract = getAddress(q.contract, "contract", false)?.toLowerCase();
+    let contract = q.contract;
+    let additional_query_params = {};
     // SQL Query
     const table = `${q.chain}_erc20_token.balance_changes_contract_historical_mv`
     let query = `SELECT 
@@ -371,14 +369,14 @@ FROM ${table} `;
     //Join for latest block between block range selected
     const blockfilter: any = [];
     let blockfilterQuery = "";
-    addBlockFilter(q, blockfilter);
+    additional_query_params = addBlockFilter(q, additional_query_params, blockfilter);
     if (blockfilter.length) blockfilterQuery += ` WHERE(${blockfilter.join(' AND ')})`;
 
     let joinSelectQuery = `SELECT account, MAX(block_num) as block_num  FROM (SELECT owner as account, block_num ,contract FROM ${table} ${blockfilterQuery})`;
     const joinWhereQuery: any = [];
 
     //add where filter to joinQuery
-    joinWhereQuery.push(`contract == '${contract}'`);
+    joinWhereQuery.push(`contract = {contract : string}`);
     if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
 
     //Add group by to joinQuery
@@ -388,7 +386,7 @@ FROM ${table} `;
 
     // WHERE statements
     const where: any = [];
-    if (contract) where.push(`contract == '${contract}'`);
+    if (contract) where.push(`contract = {contract : string}`);
     where.push(`amount != '0'`);
 
     // Join WHERE statements with AND
@@ -397,13 +395,12 @@ FROM ${table} `;
     //add ORDER BY and GROUP BY
     query += ` ORDER BY amount DESC`
 
-    const limit = parseLimit(q.limit, 100);
-    if (limit) query += ` LIMIT ${limit} `;
-    let offset;
-    if (q.page) offset = q.page * limit;
-    if (offset) query += ` OFFSET ${offset} `
 
-    return query;
+    query += ` LIMIT {limit: int} `;
+
+    if (q.page) query += ` OFFSET {offset : int}`
+
+    return { query, additional_query_params };
 }
 
 export function getHolders(endpoint: UsageEndpoints, query_param: any) {
@@ -413,12 +410,17 @@ export function getHolders(endpoint: UsageEndpoints, query_param: any) {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         let query;
-        if (q.block_num) query = getHolder_historical(q);
+        let additional_query_params = {};
+        if (q.block_num) {
+            ({ query, additional_query_params } = getHolder_historical(q));
+        }
         else query = getHolder_latest(q);
-        return query;
+        return { query, additional_query_params };
     }
     else {
-        return ""
+        let query = "";
+        let additional_query_params = {};
+        return { query, additional_query_params };
     }
 }
 
@@ -428,14 +430,10 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
     if (endpoint === "/{chain}/transfers") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
-        let contract;
-        let from;
-        let to;
-
-        if (q.contract) contract = getAddress(q.contract, "contract", false)?.toLowerCase();
-        if (q.from) from = getAddress(q.from, "from", false)?.toLowerCase();
-        if (q.to) to = getAddress(q.to, "to", false)?.toLowerCase();
-
+        let contract = q.contract;
+        let from = q.from;
+        let to = q.to;
+        let additional_query_params = {};
 
         // SQL Query
         let table = `${q.chain}_erc20_token.transfers`
@@ -464,12 +462,12 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
         const where = [];
 
         // equals
-        if (contract) where.push(`contract == '${contract}'`);
-        if (from) where.push(`from == '${from}'`);
-        if (to) where.push(`to == '${to}'`);
+        if (contract) where.push(`contract = {contract : string}`);
+        if (from) where.push(`from = {from : string}`);
+        if (to) where.push(`to = {to : string}`);
 
         // timestamp and block filter
-        addBlockRangeFilter(q, where);
+        additional_query_params = addBlockRangeFilter(q, additional_query_params, where);
 
         // Join WHERE statements with AND
         if (where.length) query += ` WHERE(${where.join(' AND ')})`;
@@ -478,11 +476,10 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
 
 
         //ADD limit
-        const limit = parseLimit(q.limit, 100);
-        query += ` LIMIT ${limit} `
-        let offset;
-        if (q.page) offset = q.page * limit;
-        if (offset) query += ` OFFSET ${offset} `
+
+        query += ` LIMIT {limit: int} `
+
+        if (q.page) query += ` OFFSET {offset : int} `
         return query;
     }
     else {
@@ -495,13 +492,7 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any) {
     if (endpoint === "/{chain}/transfers/{trx_id}") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
-        let contract;
-        let from;
-        let to;
-
-        //  const chain = searchParams.get("chain");
-        const transaction_id = formatTxid(q.trx_id);
-
+        const transaction_id = q.trx_id;
 
         // SQL Query
         let table = `${q.chain}_erc20_token.transfers`
@@ -524,10 +515,10 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any) {
 
         // equals
         if (transaction_id) where.push(`id LIKE '${transaction_id}%'`);
-
         // Join WHERE statements with AND
         if (where.length) query += ` WHERE(${where.join(' AND ')})`;
 
+        console.log(query);
         return query;
     }
     else {
