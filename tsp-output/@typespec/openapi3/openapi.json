@@ -442,23 +442,7 @@
           {
             "name": "contract",
             "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string"
             }

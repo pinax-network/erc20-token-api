@@ -217,12 +217,10 @@ export const get_Usage_supply = {
   path: z.literal("/{chain}/supply"),
   parameters: z.object({
     query: z.object({
-      contract: z.string().optional(),
-      symbol: z.string().optional(),
-      name: z.string().optional(),
-      block_num: z.number().optional(),
-      limit: z.number().optional(),
-      page: z.number().optional(),
+      contract: z.string(),
+      block_num: z.union([z.number(), z.undefined()]),
+      limit: z.union([z.number(), z.undefined()]),
+      page: z.union([z.number(), z.undefined()]),
     }),
     path: z.object({
       chain: z.union([z.literal("eth"), z.literal("polygon")]),

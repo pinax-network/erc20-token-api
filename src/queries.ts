@@ -59,8 +59,6 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
         const q = query_param as ValidUserParams<typeof endpoint>;
 
         let contract = q.contract;
-        let symbol = q.symbol;
-        let name = q.name;
 
         let additional_query_params = {};
 
@@ -87,14 +85,10 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
             const where = [];
 
             // equals
-            if (contract) where.push(`${table}.contract = {contract : string}`);
+            if (contract) where.push(`${table}.contract = {contract : String}`);
 
             // timestamp and block filter
             additional_query_params = addBlockFilter(q, additional_query_params, where);
-
-            if (symbol) where.push(`LOWER(symbol) = {symbol : string} `);
-            if (name) where.push(`LOWER(name) = {name : string} `);
-
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
@@ -143,9 +137,9 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
         if (!example) {
             // WHERE statements
             const where = [];
-            if (contract) where.push(`contract = {contract : string}`);
-            if (symbol) where.push(`LOWER(symbol) = {symbol : string} `);
-            if (name) where.push(`LOWER(name) = {name : string} `);
+            if (contract) where.push(`contract = {contract : String}`);
+            if (symbol) where.push(`LOWER(symbol) = {symbol : String} `);
+            if (name) where.push(`LOWER(name) = {name : String} `);
 
 
             // Join WHERE statements with AND
@@ -175,8 +169,8 @@ function getBalanceChanges_latest(q: any) {
     let contract = q.contract;
     let account = q.account;
 
-    let table = `{chain : string }_erc20_token.account_balances`
-    const contractTable = `{chain : string }_erc20_token.contracts`;
+    let table = `{chain : String }_erc20_token.account_balances`
+    const contractTable = `{chain : String }_erc20_token.contracts`;
     let query = `SELECT
     ${table}.account,
     ${table}.contract,
@@ -189,9 +183,9 @@ function getBalanceChanges_latest(q: any) {
     const where = [];
 
     // equals
-    where.push(`account = {account : string}`)
+    where.push(`account = {account : String}`)
     where.push(`amount != '0'`);
-    if (contract) where.push(`contract = {contract : string}`);
+    if (contract) where.push(`contract = {contract : String}`);
 
     // Join WHERE statements with AND
     if (where.length) query += ` WHERE(${where.join(' AND ')})`;
@@ -229,10 +223,10 @@ function getBalanceChanges_historical(q: any) {
     let additional_query_params = {};
 
     let table;
-    const contractTable = `{chain : string}_erc20_token.contracts`;
+    const contractTable = `{chain : String}_erc20_token.contracts`;
     // SQL Query
-    if (contract) table = `{chain : string}_erc20_token.balance_changes_contract_historical_mv`;
-    else table = `{chain : string}_erc20_token.balance_changes_account_historical_mv`
+    if (contract) table = `{chain : String}_erc20_token.balance_changes_contract_historical_mv`;
+    else table = `{chain : String}_erc20_token.balance_changes_account_historical_mv`
 
     let query = `SELECT
     ${table}.owner,
@@ -253,8 +247,8 @@ function getBalanceChanges_historical(q: any) {
     else joinSelectQuery = `SELECT contract, owner, MAX(block_num) as block_num  FROM (SELECT owner, block_num , contract FROM ${table} ${blockfilterQuery})`;
     const joinWhereQuery: any = [];
     //add where filter to joinQuery
-    if (contract) joinWhereQuery.push(`contract = {contract : string}`);
-    joinWhereQuery.push(`owner = {account : string}`);
+    if (contract) joinWhereQuery.push(`contract = {contract : String}`);
+    joinWhereQuery.push(`owner = {account : String}`);
     if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
 
     //Add group by to joinQuery
@@ -268,9 +262,9 @@ function getBalanceChanges_historical(q: any) {
     const where = [];
 
     // equals
-    where.push(`owner = {account : string}`)
+    where.push(`owner = {account : String}`)
     where.push(`amount != '0'`);
-    if (contract) where.push(`contract = {contract : string}`);
+    if (contract) where.push(`contract = {contract : String}`);
 
     // Join WHERE statements with AND
     if (where.length) query += ` WHERE(${where.join(' AND ')})`;
@@ -337,7 +331,7 @@ function getHolder_latest(q: any) {
 
     // WHERE statements
     const where: any = [];
-    if (contract) where.push(`contract = {contract : string}`);
+    if (contract) where.push(`contract = {contract : String}`);
     where.push(`amount != '0'`);
 
     // Join WHERE statements with AND
@@ -376,7 +370,7 @@ FROM ${table} `;
     const joinWhereQuery: any = [];
 
     //add where filter to joinQuery
-    joinWhereQuery.push(`contract = {contract : string}`);
+    joinWhereQuery.push(`contract = {contract : String}`);
     if (joinWhereQuery.length) joinSelectQuery += ` WHERE(${joinWhereQuery.join(' AND ')})`;
 
     //Add group by to joinQuery
@@ -386,7 +380,7 @@ FROM ${table} `;
 
     // WHERE statements
     const where: any = [];
-    if (contract) where.push(`contract = {contract : string}`);
+    if (contract) where.push(`contract = {contract : String}`);
     where.push(`amount != '0'`);
 
     // Join WHERE statements with AND
@@ -462,9 +456,9 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
         const where = [];
 
         // equals
-        if (contract) where.push(`contract = {contract : string}`);
-        if (from) where.push(`from = {from : string}`);
-        if (to) where.push(`to = {to : string}`);
+        if (contract) where.push(`contract = {contract : String}`);
+        if (from) where.push(`from = {from : String}`);
+        if (to) where.push(`to = {to : String}`);
 
         // timestamp and block filter
         additional_query_params = addBlockRangeFilter(q, additional_query_params, where);

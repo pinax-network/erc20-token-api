@@ -154,9 +154,7 @@ interface Usage {
     @get
     supply(
         @path chain: SupportedChains,
-        @query contract?: Supply.contract,
-        @query symbol?: Contract.symbol,
-        @query name?: Contract.name,
+        @query contract: Supply.contract,
         ...BlockFilter,
         ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Supply[]>>;
