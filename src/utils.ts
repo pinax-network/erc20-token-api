@@ -36,6 +36,23 @@ export function getAddress(address: string, key: string, required: boolean = fal
     return formatAddress(address);
 }
 
+
+
+export function formatQueryParams(query_params: any) {
+
+    query_params.limit = parseLimit(query_params.limit);
+    if (query_params.trx_id) query_params.trx_id = formatTxid(query_params.trx_id);
+    if (query_params.from) query_params.from = getAddress(query_params.from, "from", false)?.toLowerCase();
+    if (query_params.to) query_params.to = getAddress(query_params.to, "to", false)?.toLowerCase();
+    if (query_params.account) query_params.account = getAddress(query_params.accounts, "account", false)?.toLowerCase();
+    if (query_params.page) query_params.page = query_params.page * query_params.limit;
+    if (query_params.contract) query_params.contract = getAddress(query_params.contract, "contract", false)?.toLowerCase();
+    if (query_params.name) query_params.name = query_params.name.toLowerCase();
+    if (query_params.symbol) query_params.symbol = query_params.symbol.toLowerCase();
+    return query_params;
+}
+
+
 export function formatAddress(address: string | null) {
     if (!address) return undefined;
     if (address.startsWith("0x")) {
@@ -50,8 +67,24 @@ export function checkValidAddress(address?: string) {
     if (!ethers.isAddress(address)) throw new Error("Invalid address");
 }
 
+// Function to verify transaction hash format
+function isValidTransactionHashFormat(txHash: string) {
+    // Check if the hash has '0x' prefix
+    if (txHash.startsWith('0x')) {
+        return /^0x([A-Fa-f0-9]{64})$/.test(txHash);
+    } else {
+        return /^[A-Fa-f0-9]{64}$/.test(txHash);
+    }
+}
 export function formatTxid(txid: string | null) {
+    console.log("test", txid)
     if (!txid) return undefined;
+    if (!isValidTransactionHashFormat(txid)) {
+        console.log("invalid", txid)
+        throw new Error("Invalid trx_id");
+        return undefined
+    }
+    console.log("Valid", txid)
     if (txid.startsWith("0x")) {
         // Remove the "0x" prefix and return the address
         return txid.slice(2).toLowerCase();
