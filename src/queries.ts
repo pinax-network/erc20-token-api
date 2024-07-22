@@ -169,15 +169,15 @@ function getBalanceChanges_latest(q: any) {
     let contract = q.contract;
     let account = q.account;
 
-    let table = `{chain : String }_erc20_token.account_balances`
-    const contractTable = `{chain : String }_erc20_token.contracts`;
+    let table = `${q.chain}_erc20_token.account_balances`
+    const contractTable = `${q.chain}_erc20_token.contracts`;
     let query = `SELECT
     ${table}.account,
     ${table}.contract,
     ${table}.amount,
     toDateTime(toUnixTimestamp(${table}.timestamp)*1000) AS timestamp,
     ${table}.block_num `
-    query += ` FROM ${table} FINAL`
+    query += ` FROM ${table}`
 
     // WHERE statements
     const where = [];
@@ -202,19 +202,21 @@ function getBalanceChanges_latest(q: any) {
 
     // add Join contract
 
-    let Allquery = `SELECT 
-    query.account,
-    query.contract,
-    query.amount,
-    ${contractTable}.name as name,
-    ${contractTable}.symbol as symbol,
-    ${contractTable}.decimals as precision,
-    query.timestamp,
-    query.block_num,
+    let Allquery = `SELECT DISTINCT
+     query.account,
+     query.contract,
+     query.amount,
+     ${contractTable}.name as name,
+     ${contractTable}.symbol as symbol,
+     ${contractTable}.decimals as precision,
+     query.timestamp,
+     query.block_num,
+ 
+     FROM (${query}) as query  JOIN ${contractTable} ON query.contract = ${contractTable}.contract `
 
-    FROM (${query}) as query JOIN ${contractTable} ON query.contract = ${contractTable}.contract`
 
     return Allquery;
+    return query;
 }
 
 function getBalanceChanges_historical(q: any) {
@@ -223,10 +225,10 @@ function getBalanceChanges_historical(q: any) {
     let additional_query_params = {};
 
     let table;
-    const contractTable = `{chain : String}_erc20_token.contracts`;
+    const contractTable = `${q.chain}_erc20_token.contracts`;
     // SQL Query
-    if (contract) table = `{chain : String}_erc20_token.balance_changes_contract_historical_mv`;
-    else table = `{chain : String}_erc20_token.balance_changes_account_historical_mv`
+    if (contract) table = `${q.chain}_erc20_token.balance_changes_contract_historical_mv`;
+    else table = `${q.chain}_erc20_token.balance_changes_account_historical_mv`
 
     let query = `SELECT
     ${table}.owner,

@@ -1,5 +1,5 @@
 -- Table for balance changes --
-CREATE TABLE IF NOT EXISTS balance_changes  (
+CREATE TABLE IF NOT EXISTS balance_changes ON CLUSTER antelope  (
     "id"            String,
     timestamp       DateTime64(3, 'UTC'),
     contract        FixedString(40),
@@ -11,25 +11,26 @@ CREATE TABLE IF NOT EXISTS balance_changes  (
     block_num    UInt32(),
     change_type     Int32
 )
-ENGINE = MergeTree PRIMARY KEY ("id")
+ENGINE = ReplicatedMergeTree PRIMARY KEY ("id")
 ORDER BY (id,timestamp, block_num);
 
+
 -- MV for contract --s
-CREATE MATERIALIZED VIEW balance_changes_contract_historical_mv
-ENGINE = MergeTree()
+CREATE MATERIALIZED VIEW balance_changes_contract_historical_mv  ON CLUSTER antelope
+ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (contract, owner,block_num)
 POPULATE
 AS SELECT * FROM balance_changes;
 
 -- MV for owner --
-CREATE MATERIALIZED VIEW balance_changes_account_historical_mv
-ENGINE = MergeTree()
+CREATE MATERIALIZED VIEW balance_changes_account_historical_mv ON CLUSTER antelope
+ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (owner, contract,block_num)
 POPULATE
 AS SELECT * FROM balance_changes;
 
 
-CREATE TABLE IF NOT EXISTS token_holders
+CREATE TABLE IF NOT EXISTS token_holders ON CLUSTER antelope
 (
     account              FixedString(40),
     contract             String,
@@ -38,11 +39,11 @@ CREATE TABLE IF NOT EXISTS token_holders
     timestamp            DateTime64(3, 'UTC'),
     tx_id                FixedString(64)
 )
-    ENGINE = ReplacingMergeTree(block_num)
+    ENGINE = ReplicatedReplacingMergeTree(block_num)
         PRIMARY KEY (contract,account)
         ORDER BY (contract, account);
 
-CREATE MATERIALIZED VIEW token_holders_mv
+CREATE MATERIALIZED VIEW token_holders_mv ON CLUSTER antelope
     TO token_holders
 AS
 SELECT owner as account,
@@ -53,7 +54,7 @@ SELECT owner as account,
        transaction_id as tx_id
 FROM balance_changes;
 
-CREATE TABLE IF NOT EXISTS account_balances
+CREATE TABLE IF NOT EXISTS account_balances ON CLUSTER antelope
 (
     account              FixedString(40),
     contract             String,
@@ -62,11 +63,11 @@ CREATE TABLE IF NOT EXISTS account_balances
     timestamp            DateTime64(3, 'UTC'),
     tx_id                FixedString(64)
 )
-    ENGINE = ReplacingMergeTree(block_num)
+    ENGINE = ReplicatedReplacingMergeTree(block_num)
         PRIMARY KEY (account,contract)
         ORDER BY (account,contract);
 
-CREATE MATERIALIZED VIEW account_balances_mv
+CREATE MATERIALIZED VIEW account_balances_mv ON CLUSTER antelope
     TO account_balances
 AS
 SELECT owner as account,
@@ -79,7 +80,7 @@ FROM balance_changes;
 
 
 
-CREATE TABLE IF NOT EXISTS contracts  (
+CREATE TABLE IF NOT EXISTS contracts ON CLUSTER antelope  (
     contract FixedString(40),
     name        String,
     symbol      String,
@@ -87,67 +88,66 @@ CREATE TABLE IF NOT EXISTS contracts  (
     block_num   UInt32(),
     timestamp   DateTime64(3, 'UTC'),
 )
-ENGINE = MergeTree PRIMARY KEY ("contract")
-ORDER BY (contract, name);
+ENGINE = ReplicatedReplacingMergeTree PRIMARY KEY ("contract")
+ORDER BY (contract);
 
 
 
 
-CREATE TABLE IF NOT EXISTS supply  (
+CREATE TABLE IF NOT EXISTS supply ON CLUSTER antelope  (
     contract FixedString(40),
     supply       UInt256,
     block_num    UInt32(),
     timestamp    DateTime64(3, 'UTC'),
     version      UInt32()
 )
-ENGINE = ReplacingMergeTree(version)
+ENGINE = ReplicatedReplacingMergeTree(version)
 ORDER BY (contract,supply);
 
--- Indexes for block_number and chain --
-ALTER TABLE supply ADD INDEX supply_block_number_index block_num TYPE minmax;
 
 -- MV for contract --
-CREATE MATERIALIZED VIEW mv_supply_contract
-ENGINE = MergeTree()
+CREATE MATERIALIZED VIEW mv_supply_contract ON CLUSTER antelope
+ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (contract,block_num)
 POPULATE
 AS SELECT * FROM supply;
 
 
 
-CREATE TABLE IF NOT EXISTS transfers  (
-    'id' String,
+CREATE TABLE IF NOT EXISTS transfers ON CLUSTER antelope (
+    id String,
     contract FixedString(40),
     `from` String,
     `to` String,
     value String,
     tx_id String,
-    action_index UInt32(),
-    block_num   UInt32(),
-    timestamp       DateTime64(3, 'UTC'),
+    action_index UInt32,
+    block_num UInt32,
+    timestamp DateTime64(3, 'UTC')
 )
-ENGINE = MergeTree PRIMARY KEY ("id")
-ORDER BY (id,tx_id,block_num,timestamp);
+ENGINE = ReplicatedMergeTree
+PRIMARY KEY (id)
+ORDER BY (id, tx_id, block_num, timestamp);
 
 
 -- MV for contract --
-CREATE MATERIALIZED VIEW transfers_contract_historical_mv
-ENGINE = MergeTree()
-ORDER BY (contract, `from`,`to`)
+CREATE MATERIALIZED VIEW transfers_contract_historical_mv ON CLUSTER antelope
+ENGINE = ReplicatedReplacingMergeTree()
+ORDER BY (contract, `from`,`to`,block_num)
 POPULATE
 AS SELECT * FROM transfers;
 
 -- MV for from --
-CREATE MATERIALIZED VIEW transfers_from_historical_mv
-ENGINE = MergeTree()
-ORDER BY (`from`, contract)
+CREATE MATERIALIZED VIEW transfers_from_historical_mv ON CLUSTER antelope
+ENGINE = ReplicatedReplacingMergeTree()
+ORDER BY (`from`, contract,block_num)
 POPULATE
 AS SELECT * FROM transfers;
 
 -- MV for from --
-CREATE MATERIALIZED VIEW transfers_to_historical_mv
-ENGINE = MergeTree()
-ORDER BY (`to`, contract)
+CREATE MATERIALIZED VIEW transfers_to_historical_mv ON CLUSTER antelope
+ENGINE = ReplicatedReplacingMergeTree()
+ORDER BY (`to`, contract,block_num)
 POPULATE
 AS SELECT * FROM transfers;
 
