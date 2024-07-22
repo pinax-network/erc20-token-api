@@ -44,7 +44,7 @@ export function formatQueryParams(query_params: any) {
     if (query_params.trx_id) query_params.trx_id = formatTxid(query_params.trx_id);
     if (query_params.from) query_params.from = getAddress(query_params.from, "from", false)?.toLowerCase();
     if (query_params.to) query_params.to = getAddress(query_params.to, "to", false)?.toLowerCase();
-    if (query_params.account) query_params.account = getAddress(query_params.accounts, "account", false)?.toLowerCase();
+    if (query_params.account) query_params.account = getAddress(query_params.account, "account", false)?.toLowerCase();
     if (query_params.page) query_params.page = query_params.page * query_params.limit;
     if (query_params.contract) query_params.contract = getAddress(query_params.contract, "contract", false)?.toLowerCase();
     if (query_params.name) query_params.name = query_params.name.toLowerCase();
