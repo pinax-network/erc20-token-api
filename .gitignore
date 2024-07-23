@@ -141,3 +141,6 @@ cursor.lock
 antelope-token-api
 
 *.db
+
+#SCHEMA
+schema.sql
