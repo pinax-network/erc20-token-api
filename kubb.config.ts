@@ -1,14 +1,29 @@
 import { defineConfig } from '@kubb/core'
-
+import { pluginOas } from '@kubb/plugin-oas'
+import { pluginTs } from '@kubb/swagger-ts'
+import { pluginZod } from '@kubb/swagger-zod'
 export default defineConfig(() => {
     return {
         root: '.',
         input: {
-            path: './petStore.yaml',
+            path: './tsp-output/@typespec/openapi3/openapi.json',
         },
         output: {
-            path: './src/gen',
+            path: './src/types'
         },
-        plugins: [],
+        plugins: [
+            pluginOas({
+                output: false,
+                validate: false,
+            }),
+            pluginZod({
+                output: {
+                    path: './zod.gen.ts',
+                },
+                typedSchema: true,
+                coercion: true,
+                unknownType: 'any'
+            })
+        ],
     }
 })
