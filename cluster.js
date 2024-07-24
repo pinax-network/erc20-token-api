@@ -11,7 +11,7 @@ const clusterName = args[0]; // First argument after the script name
 
 if (!clusterName) {
     console.error(
-        "Environment variable 'CLUSTER_NAME' is not set, Cluster will be remove",
+        "Environment variable 'CLUSTER_NAME' is not set, Cluster and Replicated will be remove",
     );
 }
 
@@ -33,7 +33,8 @@ fs.readFile(inputFilePath, "utf8", (err, data) => {
 
         console.log(`Cluster name updated to: ${clusterName}`);
     } else {
-        modifiedData = data.replace(`/ON CLUSTER`, "");
+        modifiedData = data.replace(/ON CLUSTER\s+\w+/g, "");
+        modifiedData = modifiedData.replace(/Replicated/g, "");
     }
 
     // Write the modified schema to a new file
