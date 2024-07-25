@@ -2,7 +2,7 @@ import { DEFAULT_SORT_BY } from "./config.js";
 import { getAddress, parseLimit, parseTimestamp, formatTxid } from "./utils.js";
 import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParams } from "./types/api.js";
 import { Contract } from "ethers";
-import { SupportedChains } from "./types/zod.gen.js";
+
 
 export function addBlockFilter(q: any, additional_query_params: any, where: any[]) {
 
@@ -58,7 +58,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
     if (endpoint === "/{chain}/supply") {
         const q = query_param as ValidUserParams<typeof endpoint>;
 
-        let contract = q.contract;
+        let contract = q.contract
 
         let additional_query_params = {};
 

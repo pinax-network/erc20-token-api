@@ -1,7 +1,7 @@
 import { ZodError } from "zod";
 
 import type { Context } from "hono";
-import type { APIError } from "./types/zod.gen.js";
+import type { ApiErrorSchema as APIError } from "./types/zod.gen.js";
 import { logger } from "./logger.js";
 import * as prometheus from "./prometheus.js";
 import { ethers } from "ethers";

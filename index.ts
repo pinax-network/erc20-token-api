@@ -3,16 +3,16 @@ import openapi from "./tsp-output/@typespec/openapi3/openapi.json";
 
 import { Hono } from "hono";
 import { ZodBigInt, ZodBoolean, ZodDate, ZodDefault, ZodNumber, ZodOptional, ZodTypeAny, ZodUndefined, ZodUnion, z } from "zod";
-import { EndpointByMethod } from './src/types/zod.gen.js';
+import { paths } from './src/types/zod.gen.js';
 import { APP_VERSION } from "./src/config.js";
 import { logger } from './src/logger.js';
 import * as prometheus from './src/prometheus.js';
 import { makeUsageQuery } from "./src/usage.js";
 import { APIErrorResponse } from "./src/utils.js";
-import { fixEndpointParametersCoercion } from "./src/types/api.js";
+
 
 import type { Context } from "hono";
-import type { EndpointParameters, EndpointReturnTypes, UsageEndpoints } from "./src/types/api.js";
+import type { EndpointParameters, EndpointReturnTypes, UsageEndpoints, ValidQueryParams } from "./src/types/api.js";
 
 function ERC20TokenAPI() {
     const app = new Hono();
@@ -63,31 +63,43 @@ function ERC20TokenAPI() {
         async (_) => new Response(await prometheus.registry.metrics(), { headers: { "Content-Type": prometheus.registry.contentType } })
     );
 
-    // Call once
-    fixEndpointParametersCoercion();
 
     const createUsageEndpoint = (endpoint: UsageEndpoints) => app.get(
         // Hono using different syntax than OpenAPI for path parameters
         // `/{path_param}` (OpenAPI) VS `/:path_param` (Hono)
         endpoint.replace(/{([^}]+)}/g, ":$1"),
         async (ctx: Context) => {
-            const result = EndpointByMethod["get"][endpoint].parameters.safeParse({
-                query: ctx.req.query(),
-                path: ctx.req.param()
-            }) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>>;
 
-            if (result.success) {
+            let resultQuery;
+            let resultPath;
+
+            if (paths[endpoint]["get"]["parameters"]["path"] != undefined) {
+
+                resultPath = paths[endpoint]["get"]["parameters"]["path"].safeParse({
+                    path: ctx.req.param()
+                }) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["path"]>;
+            }
+
+            if (paths[endpoint]["get"]["parameters"]["query"] != undefined) {
+
+                resultQuery = paths[endpoint]["get"]["parameters"]["query"].safeParse({
+                    query: ctx.req.query()
+                }) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["query"]>;
+            }
+
+
+            if ((resultPath == undefined || resultPath.success) && (resultQuery == undefined || resultQuery.success)) {
                 return makeUsageQuery(
                     ctx,
                     endpoint,
                     {
-                        ...result.data.query,
+                        ...resultQuery?.data,
                         // Path parameters may not always be present
-                        ...("path" in result.data ? result.data.path : {})
-                    }
+                        ...resultPath?.data
+                    } as ValidQueryParams
                 );
             } else {
-                return APIErrorResponse(ctx, 400, "bad_query_input", result.error);
+                return APIErrorResponse(ctx, 400, "bad_query_input", resultPath?.error || resultQuery?.error);
             }
         }
     );
