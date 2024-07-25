@@ -7,10 +7,11 @@ import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParam
 export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, user_params: ValidUserParams<typeof endpoint>) {
     type EndpointElementReturnType = EndpointReturnTypes<typeof endpoint>;
 
-    let { page, ...query_params } = user_params;
-    let limit;
-    if (!query_params.limit)
-        query_params.limit = 100;
+    let page;
+    if (user_params && "page" in user_params) page = user_params.page;
+
+    let limit = 100;
+    if (user_params && "limit" in user_params && user_params.limit) limit = user_params.limit;
 
     if (!page)
         page = 1;
@@ -19,28 +20,26 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
     let additional_query_params = {};
 
     try {
-        query_params = formatQueryParams(query_params);
+        user_params = formatQueryParams(user_params);
     }
     catch (err) {
         return APIErrorResponse(ctx, 400, "bad_query_input", err);
     }
-    if (query_params.limit) limit = query_params.limit;
-    else
-        limit = 100;
+
     switch (endpoint) {
-        case "/{chain}/balance": ({ query, additional_query_params } = getBalanceChanges(endpoint, query_params)); break;
-        case "/{chain}/supply": ({ query, additional_query_params } = getTotalSupply(endpoint, query_params)); break;
-        case "/{chain}/transfers": query = getTransfers(endpoint, query_params); break;
-        case "/{chain}/holders": ({ query, additional_query_params } = getHolders(endpoint, query_params)); break;
+        case "/{chain}/balance": ({ query, additional_query_params } = getBalanceChanges(endpoint, user_params)); break;
+        case "/{chain}/supply": ({ query, additional_query_params } = getTotalSupply(endpoint, user_params)); break;
+        case "/{chain}/transfers": query = getTransfers(endpoint, user_params); break;
+        case "/{chain}/holders": ({ query, additional_query_params } = getHolders(endpoint, user_params)); break;
         case "/chains": query = getChains(); break;
-        case "/{chain}/transfers/{trx_id}": query = getTransfer(endpoint, query_params); break;
-        case "/{chain}/tokens": query = getContracts(endpoint, query_params); break;
+        case "/{chain}/transfers/{trx_id}": query = getTransfer(endpoint, user_params); break;
+        case "/{chain}/tokens": query = getContracts(endpoint, user_params); break;
     }
 
     let query_results;
 
     try {
-        query_results = await makeQuery<EndpointElementReturnType>(query, { ...query_params, ...additional_query_params, offset: query_params.limit });
+        query_results = await makeQuery<EndpointElementReturnType>(query, { ...user_params, ...additional_query_params, offset: user_params.limit });
     } catch (err) {
         return APIErrorResponse(ctx, 500, "bad_database_response", err);
     }
