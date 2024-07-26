@@ -1,7 +1,5 @@
 import { DATABASE_SUFFIX, DEFAULT_SORT_BY } from "./config.js";
-import { getAddress, parseLimit, parseTimestamp, formatTxid } from "./utils.js";
-import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParams } from "./types/api.js";
-import { Contract } from "ethers";
+import type { UsageEndpoints, ValidUserParams } from "./types/api.js";
 
 
 export function addBlockFilter(q: any, additional_query_params: any, where: any[]) {
