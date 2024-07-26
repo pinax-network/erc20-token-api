@@ -1,4 +1,4 @@
-import { DEFAULT_SORT_BY } from "./config.js";
+import { DATABASE_SUFFIX, DEFAULT_SORT_BY } from "./config.js";
 import { getAddress, parseLimit, parseTimestamp, formatTxid } from "./utils.js";
 import type { EndpointReturnTypes, UsageEndpoints, UsageResponse, ValidUserParams } from "./types/api.js";
 import { Contract } from "ethers";
@@ -45,12 +45,13 @@ export function getChains() {
 
     // Use a for loop to iterate over each item
     for (const chain of supportedChain) {
-        queries.push(`SELECT '${chain}' as chain, MIN(block_num) as block_num FROM ${chain}_erc20_token.cursors`)
+        queries.push(`SELECT '${chain}' as chain, MIN(block_num) as block_num FROM ${chain}_${DATABASE_SUFFIX}.cursors`)
     }
 
     let query = queries.join(' UNION ALL ');
     return query;
 }
+
 
 
 export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, example?: boolean) {
@@ -64,8 +65,8 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
 
         // Query
-        const table = `${q.chain}_erc20_token.mv_supply_contract`
-        const contractTable = `${q.chain}_erc20_token.contracts`;
+        const table = `${q.chain}_${DATABASE_SUFFIX}.mv_supply_contract`
+        const contractTable = `${q.chain}_${DATABASE_SUFFIX}.contracts`;
         let query = `SELECT
         ${table}.contract,
         ${table}.supply as supply,
@@ -123,7 +124,7 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
         let name = q.name;
 
         // Query
-        const table = `${q.chain}_erc20_token.contracts`
+        const table = `${q.chain}_${DATABASE_SUFFIX}.contracts`
         let query = `SELECT  
     ${table}.contract,
     ${table}.name,
@@ -169,8 +170,8 @@ function getBalanceChanges_latest(q: any) {
     let contract = q.contract;
     let account = q.account;
 
-    let table = `${q.chain}_erc20_token.account_balances`
-    const contractTable = `${q.chain}_erc20_token.contracts`;
+    let table = `${q.chain}_${DATABASE_SUFFIX}.account_balances`
+    const contractTable = `${q.chain}_${DATABASE_SUFFIX}.contracts`;
     let query = `SELECT
     ${table}.account,
     ${table}.contract,
@@ -225,10 +226,10 @@ function getBalanceChanges_historical(q: any) {
     let additional_query_params = {};
 
     let table;
-    const contractTable = `${q.chain}_erc20_token.contracts`;
+    const contractTable = `${q.chain}_${DATABASE_SUFFIX}.contracts`;
     // SQL Query
-    if (contract) table = `${q.chain}_erc20_token.balance_changes_contract_historical_mv`;
-    else table = `${q.chain}_erc20_token.balance_changes_account_historical_mv`
+    if (contract) table = `${q.chain}_${DATABASE_SUFFIX}.balance_changes_contract_historical_mv`;
+    else table = `${q.chain}_${DATABASE_SUFFIX}.balance_changes_account_historical_mv`
 
     let query = `SELECT
     ${table}.owner,
@@ -323,7 +324,7 @@ export function getBalanceChanges(endpoint: UsageEndpoints, query_param: any) {
 function getHolder_latest(q: any) {
     let contract = q.contract;
     // SQL Query
-    const table = `${q.chain}_erc20_token.token_holders_mv`
+    const table = `${q.chain}_${DATABASE_SUFFIX}.token_holders_mv`
     let query = `SELECT 
     account,
     amount,
@@ -354,7 +355,7 @@ function getHolder_historical(q: any) {
     let contract = q.contract;
     let additional_query_params = {};
     // SQL Query
-    const table = `${q.chain}_erc20_token.balance_changes_contract_historical_mv`
+    const table = `${q.chain}_${DATABASE_SUFFIX}.balance_changes_contract_historical_mv`
     let query = `SELECT 
     owner as account,
     new_balance AS amount,
@@ -432,10 +433,10 @@ export function getTransfers(endpoint: UsageEndpoints, query_param: any) {
         let additional_query_params = {};
 
         // SQL Query
-        let table = `${q.chain}_erc20_token.transfers`
-        let mvFromTable = `${q.chain}_erc20_token.transfers_from_historical_mv`
-        let mvToTable = `${q.chain}_erc20_token.transfers_to_historical_mv`
-        let mvContractTable = `${q.chain}_erc20_token.transfers_contract_historical_mv`
+        let table = `${q.chain}_${DATABASE_SUFFIX}.transfers`
+        let mvFromTable = `${q.chain}_${DATABASE_SUFFIX}.transfers_from_historical_mv`
+        let mvToTable = `${q.chain}_${DATABASE_SUFFIX}.transfers_to_historical_mv`
+        let mvContractTable = `${q.chain}_${DATABASE_SUFFIX}.transfers_contract_historical_mv`
 
         let query = `SELECT
         contract,
@@ -491,7 +492,7 @@ export function getTransfer(endpoint: UsageEndpoints, query_param: any) {
         const transaction_id = q.trx_id;
 
         // SQL Query
-        let table = `${q.chain}_erc20_token.transfers`
+        let table = `${q.chain}_${DATABASE_SUFFIX}.transfers`
 
         let query = `SELECT
         contract,

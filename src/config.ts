@@ -6,10 +6,10 @@ import pkg from "../package.json";
 
 export const DEFAULT_PORT = "8080";
 export const DEFAULT_HOSTNAME = "localhost";
-export const DEFAULT_HOST = "http://localhost:8123";
-export const DEFAULT_DATABASE = "eth_erc20_token";
-export const DEFAULT_USERNAME = "testing";
-export const DEFAULT_PASSWORD = "secret";
+export const DEFAULT_HOST = "http://ch-node44d.mar.eosn.io:8123";
+export const DATABASE_SUFFIX = "token_v1"; // API will use {chain}_{DATABASE_SUFFIX} as the database name
+export const DEFAULT_USERNAME = "default";
+export const DEFAULT_PASSWORD = "rtlbYofewjyuW2kD";
 export const DEFAULT_MAX_LIMIT = 10000;
 export const DEFAULT_VERBOSE = true;
 export const DEFAULT_SORT_BY = "DESC";
@@ -28,11 +28,12 @@ const opts = program
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the API").env("PORT").default(DEFAULT_PORT))
     .addOption(new Option("--hostname <string>", "Server listen on HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
     .addOption(new Option("--host <string>", "Database HTTP hostname").env("HOST").default(DEFAULT_HOST))
-    .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
+    .addOption(new Option("--database <string>", "The database suffix to use inside ClickHouse for {chain}_{database}").env("DATABASE").default(`eth_${DATABASE_SUFFIX}`))
     .addOption(new Option("--username <string>", "Database user").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified username").env("PASSWORD").default(DEFAULT_PASSWORD))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
     .addOption(new Option("-v, --verbose <boolean>", "Enable verbose logging").choices(["true", "false"]).env("VERBOSE").default(DEFAULT_VERBOSE))
+
     .parse()
     .opts();
 
