@@ -73,22 +73,20 @@ function ERC20TokenAPI() {
             let resultQuery;
             let resultPath;
 
+            console.log(ctx.req.param())
             if (paths[endpoint]["get"]["parameters"]["path"] != undefined) {
 
-                resultPath = paths[endpoint]["get"]["parameters"]["path"].safeParse({
-                    path: ctx.req.param()
-                }) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["path"]>;
+                resultPath = paths[endpoint]["get"]["parameters"]["path"].safeParse(ctx.req.param()) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["path"]>;
             }
 
             if (paths[endpoint]["get"]["parameters"]["query"] != undefined) {
 
-                resultQuery = paths[endpoint]["get"]["parameters"]["query"].safeParse({
-                    query: ctx.req.query()
-                }) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["query"]>;
+                resultQuery = paths[endpoint]["get"]["parameters"]["query"].safeParse(ctx.req.query()) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["query"]>;
             }
 
 
             if ((resultPath == undefined || resultPath.success) && (resultQuery == undefined || resultQuery.success)) {
+                console.log("Success")
                 return makeUsageQuery(
                     ctx,
                     endpoint,
