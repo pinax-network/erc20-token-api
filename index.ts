@@ -2,7 +2,7 @@ import client from './src/clickhouse/client.js';
 import openapi from "./tsp-output/@typespec/openapi3/openapi.json";
 
 import { Hono } from "hono";
-import { ZodBigInt, ZodBoolean, ZodDate, ZodDefault, ZodNumber, ZodOptional, ZodTypeAny, ZodUndefined, ZodUnion, z } from "zod";
+import { z } from "zod";
 import { paths } from './src/types/zod.gen.js';
 import { APP_VERSION } from "./src/config.js";
 import { logger } from './src/logger.js';
