@@ -144,3 +144,5 @@ antelope-token-api
 
 #SCHEMA
 schema.sql
+
+src/config.ts
