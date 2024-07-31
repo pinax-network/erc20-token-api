@@ -74,14 +74,14 @@ function ERC20TokenAPI() {
             let resultPath;
 
             console.log(ctx.req.param())
-            if (paths[endpoint]["get"]["parameters"]["path"] != undefined) {
-
-                resultPath = paths[endpoint]["get"]["parameters"]["path"].safeParse(ctx.req.param()) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["path"]>;
+            if (paths[endpoint]?.["get"]?.["parameters"]?.["path"] != undefined) {
+                resultPath = paths[endpoint]?.["get"]?.["parameters"]?.["path"]?.safeParse(ctx.req.param()) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["path"]>;
             }
 
-            if (paths[endpoint]["get"]["parameters"]["query"] != undefined) {
 
-                resultQuery = paths[endpoint]["get"]["parameters"]["query"].safeParse(ctx.req.query()) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["query"]>;
+            if (paths[endpoint]?.["get"]?.["parameters"]?.["query"] != undefined) {
+
+                resultQuery = paths[endpoint]?.["get"]?.["parameters"]?.["query"].safeParse(ctx.req.query()) as z.SafeParseSuccess<EndpointParameters<typeof endpoint>["query"]>;
             }
 
 
