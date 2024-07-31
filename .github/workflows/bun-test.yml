@@ -3,30 +3,30 @@ name: Test
 on: push
 
 jobs:
-  bun-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+    bun-test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Install bun
-        uses: oven-sh/setup-bun@v1
+            - name: Install bun
+              uses: oven-sh/setup-bun@v2
 
-      - name: 'Install Dependencies'
-        run: |
-          bun install
+            - name: "Install Dependencies"
+              run: |
+                  bun install
 
-      - name: 'Run lint'
-        run: |
-          bun lint
+            - name: "Run lint"
+              run: |
+                  bun lint
 
-      - name: 'Run test'
-        run: |
-          bun test
-        env:
-          PORT: ${{ vars.PORT }}
-          HOSTNAME: ${{ vars.HOSTNAME }}
-          HOST: ${{ vars.HOST }}
-          USERNAME: ${{ secrets.USERNAME }}
-          PASSWORD: ${{ secrets.PASSWORD }}
-          TABLE: ${{ secrets.TABLE }}
+            - name: "Run test"
+              run: |
+                  bun test
+              env:
+                  PORT: ${{ vars.PORT }}
+                  HOSTNAME: ${{ vars.HOSTNAME }}
+                  HOST: ${{ vars.HOST }}
+                  USERNAME: ${{ secrets.USERNAME }}
+                  PASSWORD: ${{ secrets.PASSWORD }}
+                  TABLE: ${{ secrets.TABLE }}
