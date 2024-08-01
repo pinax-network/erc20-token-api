@@ -2,14 +2,14 @@
 -- Meta tables to store Substreams information --
 -------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS cursors
+CREATE TABLE IF NOT EXISTS cursors ON CLUSTER cluster_name
 (
     id        String,
     cursor    String,
     block_num Int64,
     block_id  String
 )
-    ENGINE = ReplacingMergeTree()
+    ENGINE = ReplicatedReplacingMergeTree()
         PRIMARY KEY (id)
         ORDER BY (id);
 

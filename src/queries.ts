@@ -1,6 +1,6 @@
 import { DATABASE_SUFFIX, DEFAULT_SORT_BY } from "./config.js";
 import type { UsageEndpoints, ValidUserParams } from "./types/api.js";
-
+import { SupportedChainsSchema, supportedChainsSchema } from "./types/zod.gen.js"; { }
 
 export function addBlockFilter(q: any, additional_query_params: any, where: any[]) {
 
@@ -38,7 +38,7 @@ export function getChains() {
 
 
     //ADD more chains if needed
-    let supportedChain = ['eth', 'polygon'];
+    let supportedChain: SupportedChainsSchema[] = supportedChainsSchema._def.values;
     let queries = [];
 
     // Use a for loop to iterate over each item

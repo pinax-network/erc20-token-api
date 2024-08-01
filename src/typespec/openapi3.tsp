@@ -39,6 +39,16 @@ model APIError {
     message: string;
 }
 
+
+
+
+enum SupportedChains {
+    ETH: "eth",
+   // POLYGON: "polygon",
+}
+
+
+
 // Models will be present in the OpenAPI components
 model Transfer is Models.Transfer<unixTimestamp32>;
 model BalanceChange is Models.BalanceChange<unixTimestamp32>;
@@ -105,14 +115,6 @@ alias PaginationQueryParams = {
 
 // Helper aliases for accessing underlying properties
 alias BlockInfo = Models.BlockInfo<unixTimestamp32>;
-
-
-
-
-enum SupportedChains {
-    ETH: "eth",
-    POLYGON: "polygon",
-}
 
 @tag("Usage")
 interface Usage {

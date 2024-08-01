@@ -1065,8 +1065,7 @@
       "SupportedChains": {
         "type": "string",
         "enum": [
-          "eth",
-          "polygon"
+          "eth"
         ]
       },
       "Transfer": {

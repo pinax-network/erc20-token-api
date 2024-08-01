@@ -33,7 +33,7 @@ export const supplySchema = z.object({ "contract": z.coerce.string(), "supply": 
 export type SupplySchema = z.infer<typeof supplySchema>;
 
 
-export const supportedChainsSchema = z.enum(["eth", "polygon"]);
+export const supportedChainsSchema = z.enum(["eth"]);
 export type SupportedChainsSchema = z.infer<typeof supportedChainsSchema>;
 
 
