@@ -1,6 +1,9 @@
-import { DATABASE_SUFFIX, DEFAULT_SORT_BY } from "./config.js";
+import { config, DEFAULT_SORT_BY } from "./config.js";
 import type { UsageEndpoints, ValidUserParams } from "./types/api.js";
 import { SupportedChainsSchema, supportedChainsSchema } from "./types/zod.gen.js"; { }
+
+
+const DATABASE_SUFFIX = config.database;
 
 export function addBlockFilter(q: any, additional_query_params: any, where: any[]) {
 
