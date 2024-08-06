@@ -78,7 +78,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
         ${contractTable}.symbol as symbol,
         ${contractTable}.decimals as precision,
         toUnixTimestamp(${table}.timestamp)*1000 as timestamp
-    FROM ${table} `;
+    FROM ${table} FINAL `;
 
 
 
@@ -105,7 +105,8 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
             // Sort and Limit
             // const sort_by = searchParams.get("sort_by");
-            query += ` ORDER BY block_num`
+           if(q.block_num) query += ` ORDER BY block_num`
+           else query += ` ORDER BY block_num DESC `
 
         }
 
