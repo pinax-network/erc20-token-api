@@ -13,6 +13,10 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
     let limit = 100;
     if (user_params && "limit" in user_params && user_params.limit) limit = user_params.limit;
 
+    let offset = 0;
+    if (user_params && "page" in user_params && user_params.page) offset = user_params.limit ? user_params.page * user_params.limit : 0;
+
+
     if (!page)
         page = 1;
 
@@ -39,7 +43,7 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
     let query_results;
 
     try {
-        query_results = await makeQuery<EndpointElementReturnType>(query, { ...user_params, ...additional_query_params, offset: user_params.limit });
+        query_results = await makeQuery<EndpointElementReturnType>(query, { ...user_params, ...additional_query_params, limit, offset });
     } catch (err) {
         return APIErrorResponse(ctx, 500, "bad_database_response", err);
     }

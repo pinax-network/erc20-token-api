@@ -40,7 +40,7 @@ export function getAddress(address: string, key: string, required: boolean = fal
 
 export function formatQueryParams(query_params: any) {
 
-    query_params.limit = parseLimit(query_params.limit);
+    if(query_params.limit) query_params.limit = parseLimit(query_params.limit); else query_params.limit = 1;
     if (query_params.trx_id) query_params.trx_id = formatTxid(query_params.trx_id);
     if (query_params.from) query_params.from = getAddress(query_params.from, "from", false)?.toLowerCase();
     if (query_params.to) query_params.to = getAddress(query_params.to, "to", false)?.toLowerCase();
