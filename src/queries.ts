@@ -16,6 +16,8 @@ export function addBlockFilter(q: any, additional_query_params: any, where: any[
 
 }
 
+
+
 export function addBlockRangeFilter(q: any, additional_query_params: any, where: any[]) {
 
     if (q.block_range && q.block_range != '0') {
@@ -87,20 +89,25 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
             if (contract) where.push(`${table}.contract = {contract : String}`);
 
             // timestamp and block filter
-            additional_query_params = addBlockFilter(q, additional_query_params, where);
+            
+            if (q.block_num) {
+                const max_block = q.block_num;
+                where.push(`block_num >= {max_block : int}`);
+                additional_query_params = { ...additional_query_params, max_block }
+        
+            }
 
             // Join WHERE statements with AND
             if (where.length) query += ` WHERE(${where.join(' AND ')})`;
 
             // Sort and Limit
             // const sort_by = searchParams.get("sort_by");
-            query += ` ORDER BY block_num ${DEFAULT_SORT_BY} `
+            query += ` ORDER BY block_num`
 
         }
 
-        query += ` LIMIT {limit: int} `
+        query += ` LIMIT 1 `
 
-        if (q.page) query += ` OFFSET {offset : int} `
 
         return { query, additional_query_params };
     }

@@ -176,7 +176,7 @@ export type UsageHoldersQueryResponseSchema = z.infer<typeof usageHoldersQueryRe
 export const usageSupplyPathParamsSchema = z.object({ "chain": z.lazy(() => supportedChainsSchema) });
 export type UsageSupplyPathParamsSchema = z.infer<typeof usageSupplyPathParamsSchema>;
 
- export const usageSupplyQueryParamsSchema = z.object({ "contract": z.coerce.string(), "block_num": z.coerce.number().optional(), "limit": z.coerce.number().optional(), "page": z.coerce.number().optional() });
+ export const usageSupplyQueryParamsSchema = z.object({ "contract": z.coerce.string(), "block_num": z.coerce.number().optional() });
 export type UsageSupplyQueryParamsSchema = z.infer<typeof usageSupplyQueryParamsSchema>;
 /**
  * @description Array of supplies.

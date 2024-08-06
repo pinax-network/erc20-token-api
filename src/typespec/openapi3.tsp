@@ -158,7 +158,6 @@ interface Usage {
         @path chain: SupportedChains,
         @query contract: Supply.contract,
         ...BlockFilter,
-        ...PaginationQueryParams,
     ): APIResponse<UsageResponse<Supply[]>>;
 
     /**
