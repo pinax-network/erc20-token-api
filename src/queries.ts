@@ -164,6 +164,7 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
         query += ` LIMIT {limit : int} `
         if (q.page) query += ` OFFSET {offset: int} `
 
+ 
         return query;
     }
     else {

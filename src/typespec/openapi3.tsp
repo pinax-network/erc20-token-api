@@ -110,7 +110,7 @@ alias AmountFilter = {
 alias APIResponse<T> = T | APIError;
 alias PaginationQueryParams = {
     @query limit?: uint64 = 100;
-    @query page?: uint64 = 1;
+    @query page?: uint64 = 0;
 };
 
 // Helper aliases for accessing underlying properties

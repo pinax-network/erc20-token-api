@@ -43,6 +43,7 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
     let query_results;
 
     try {
+        console.log(user_params,additional_query_params)
         query_results = await makeQuery<EndpointElementReturnType>(query, { ...user_params, ...additional_query_params, limit, offset });
     } catch (err) {
         return APIErrorResponse(ctx, 500, "bad_database_response", err);

@@ -47,7 +47,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 0
             }
           }
         ],
@@ -285,7 +285,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 0
             }
           }
         ],
@@ -379,7 +379,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 0
             }
           }
         ],
@@ -554,7 +554,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 0
             }
           }
         ],
@@ -666,7 +666,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 0
             }
           }
         ],
@@ -751,7 +751,7 @@
             "schema": {
               "type": "integer",
               "format": "uint64",
-              "default": 1
+              "default": 0
             }
           }
         ],
