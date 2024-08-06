@@ -5,7 +5,9 @@ import { APP_NAME, config } from "../config.js";
 // TODO: Check how to abort previous queries if haven't returned yet
 // TODO: Make client connect to all DB instances
 const client = createClient({
-    ...config,
+    username: config.username,
+    password: config.password,
+    url: config.host,
     clickhouse_settings: {
         allow_experimental_object_type: 1,
         readonly: "1",

@@ -7,7 +7,7 @@ import pkg from "../package.json";
 export const DEFAULT_PORT = "8080";
 export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_HOST = "http://localhost:8123";
-export const DATABASE_SUFFIX = "token_v1"; // API will use {chain}_{DATABASE_SUFFIX} as the database name
+export const DATABASE_SUFFIX = "tokens_v1"; // API will use {chain}_{DATABASE_SUFFIX} as the database name
 export const DEFAULT_USERNAME = "default";
 export const DEFAULT_PASSWORD = "default";
 export const DEFAULT_MAX_LIMIT = 10000;
@@ -28,7 +28,7 @@ const opts = program
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the API").env("PORT").default(DEFAULT_PORT))
     .addOption(new Option("--hostname <string>", "Server listen on HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
     .addOption(new Option("--host <string>", "Database HTTP hostname").env("HOST").default(DEFAULT_HOST))
-    .addOption(new Option("--database <string>", "The database suffix to use inside ClickHouse for {chain}_{database}").env("DATABASE").default(`eth_${DATABASE_SUFFIX}`))
+    .addOption(new Option("--database <string>", "The database suffix to use inside ClickHouse for {chain}_{database}").env("DATABASE").default(`${DATABASE_SUFFIX}`))
     .addOption(new Option("--username <string>", "Database user").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified username").env("PASSWORD").default(DEFAULT_PASSWORD))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
@@ -41,8 +41,8 @@ export const config = z.object({
     port: z.string(),
     hostname: z.string(),
     host: z.string(),
-    database: z.string(),
     username: z.string(),
+    database: z.string(),
     password: z.string(),
     maxLimit: z.coerce.number(),
     verbose: z.coerce.boolean(),
