@@ -137,9 +137,8 @@ CREATE TABLE IF NOT EXISTS supply ON CLUSTER cluster_name  (
     supply       UInt256,
     block_num    UInt32(),
     timestamp    DateTime64(3, 'UTC'),
-    version      UInt32()
 )
-ENGINE = ReplicatedReplacingMergeTree(version)
+ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (contract,supply);
 
 
