@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS supply ON CLUSTER cluster_name  (
     timestamp    DateTime64(3, 'UTC'),
 )
 ENGINE = ReplicatedReplacingMergeTree()
-ORDER BY (contract,supply);
+ORDER BY (contract,block_num);
 
 
 

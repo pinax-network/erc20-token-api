@@ -68,7 +68,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
 
         // Query
-        const table = `${q.chain}_${DATABASE_SUFFIX}.mv_supply_contract`
+        const table = `${q.chain}_${DATABASE_SUFFIX}.supply`
         const contractTable = `${q.chain}_${DATABASE_SUFFIX}.contracts`;
         let query = `SELECT
         ${table}.contract,
@@ -92,12 +92,12 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
             if (contract) where.push(`${table}.contract = {contract : String}`);
 
             // timestamp and block filter
-            
+
             if (q.block_num) {
                 const max_block = q.block_num;
-                where.push(`block_num >= {max_block : int}`);
+                where.push(`block_num <= {max_block : int}`);
                 additional_query_params = { ...additional_query_params, max_block }
-        
+
             }
 
             // Join WHERE statements with AND
@@ -105,8 +105,7 @@ export function getTotalSupply(endpoint: UsageEndpoints, query_param: any, examp
 
             // Sort and Limit
             // const sort_by = searchParams.get("sort_by");
-           if(q.block_num) query += ` ORDER BY block_num`
-           else query += ` ORDER BY block_num DESC `
+            query += ` ORDER BY block_num DESC `
 
         }
 
@@ -164,7 +163,7 @@ export function getContracts(endpoint: UsageEndpoints, query_param: any, example
         query += ` LIMIT {limit : int} `
         if (q.page) query += ` OFFSET {offset: int} `
 
- 
+
         return query;
     }
     else {
