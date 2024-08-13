@@ -146,3 +146,5 @@ antelope-token-api
 schema.sql
 
 src/config.ts
+
+erc20-token-api

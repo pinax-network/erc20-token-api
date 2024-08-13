@@ -46,8 +46,7 @@
         "types": "bun run tsp compile ./src/typespec && bun run kubb --config ./kubb.config.ts",
         "types:check": "bun run tsp compile ./src/typespec --no-emit --pretty --warn-as-error",
         "types:format": "bun run tsp format src/typespec/**/*.tsp",
-        "types:watch": "bun run tsp compile ./src/typespec --watch --pretty --warn-as-error",
-        "generate:": "bun run kubb --config ./kubb.config.ts"
+        "types:watch": "bun run tsp compile ./src/typespec --watch --pretty --warn-as-error"
     },
     "type": "module",
     "devDependencies": {
