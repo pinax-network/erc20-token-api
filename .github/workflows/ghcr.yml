@@ -1,5 +1,6 @@
 name: GitHub Container Registry
 on:
+    workflow_dispatch:
     push:
         tags:
             - "v*"
