@@ -3,40 +3,41 @@
 [![.github/workflows/bun-test.yml](https://github.com/pinax-network/erc20-token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/erc20-token-api/actions/workflows/bun-test.yml)
 
 > Tokens information from all EVM blockchains, powered by [Substreams](https://substreams.streamingfast.io/)
+
 ## REST API
 
 ### Usage
 
-| Method | Path | Query parameters<br>(* = **Required**) | Description |
-| :---: | --- | --- | --- |
-| GET <br>`text/html` | `/` | - | [Swagger](https://swagger.io/) API playground |
-| GET <br>`application/json` | `/chains` | `limit`<br>`page` | Information about the chains and latest head block in the database |
-| GET <br>`application/json` | `/{chain}/balance` | `block_num`<br>`contract`<br>`account*`<br>`limit`<br>`page` | Balances of an account. |
-| GET <br>`application/json` | `/{chain}/holders` | **`contract*`**<br>`limit`<br>`page` | List of holders of a token |
-| GET <br>`application/json` | `/{chain}/supply` | `block_num`<br>`contract*`<br>`limit`<br>`page` | Total supply for a token |
-| GET <br>`application/json` | `/{chain}/tokens` |`contract`<br>`symbol`<br>`name`<br>`limit`<br>`page` | Get info about available tokens |
-| GET <br>`application/json` | `/{chain}/transfers` | `block_range`<br>`from`<br>`to`<br>`contract`<br>`limit`<br>`page` | All transfers related to a token |
-| GET <br>`application/json` | `/{chain}/transfers/{trx_id}` | `limit`<br>`page` | Specific transfer related to a token |
+|           Method           | Path                          | Query parameters<br>(\* = **Required**)                            | Description                                                        |
+| :------------------------: | ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+|    GET <br>`text/html`     | `/`                           | -                                                                  | [Swagger](https://swagger.io/) API playground                      |
+| GET <br>`application/json` | `/chains`                     | `limit`<br>`page`                                                  | Information about the chains and latest head block in the database |
+| GET <br>`application/json` | `/{chain}/balance`            | `block_num`<br>`contract`<br>`account*`<br>`limit`<br>`page`       | Balances of an account.                                            |
+| GET <br>`application/json` | `/{chain}/holders`            | **`contract*`**<br>`limit`<br>`page`                               | List of holders of a token                                         |
+| GET <br>`application/json` | `/{chain}/supply`             | `block_num`<br>`contract*`<br>`limit`<br>`page`                    | Total supply for a token                                           |
+| GET <br>`application/json` | `/{chain}/tokens`             | `contract`<br>`symbol`<br>`name`<br>`limit`<br>`page`              | Get info about available tokens                                    |
+| GET <br>`application/json` | `/{chain}/transfers`          | `block_range`<br>`from`<br>`to`<br>`contract`<br>`limit`<br>`page` | All transfers related to a token                                   |
+| GET <br>`application/json` | `/{chain}/transfers/{trx_id}` | `limit`<br>`page`                                                  | Specific transfer related to a token                               |
 
 ### Docs
 
-| Method | Path | Description |
-| :---: | --- | --- |
+|           Method           | Path       | Description                                        |
+| :------------------------: | ---------- | -------------------------------------------------- |
 | GET <br>`application/json` | `/openapi` | [OpenAPI](https://www.openapis.org/) specification |
-| GET <br>`application/json` | `/version` | API version and Git short commit hash |
+| GET <br>`application/json` | `/version` | API version and Git short commit hash              |
 
 ### Monitoring
 
-| Method | Path | Description |
-| :---: | --- | --- |
-| GET <br>`text/plain` | `/health` | Checks database connection |
+|        Method        | Path       | Description                                  |
+| :------------------: | ---------- | -------------------------------------------- |
+| GET <br>`text/plain` | `/health`  | Checks database connection                   |
 | GET <br>`text/plain` | `/metrics` | [Prometheus](https://prometheus.io/) metrics |
 
 ## Requirements
 
-- [ClickHouse](clickhouse.com/), databases should follow a `{chain}_tokens_{version}` naming scheme. Database tables can be setup using the [`schema.sql`](./schema.sql) definitions created by the [`create_schema.sh`](./create_schema.sh) script.
-- A [Substream sink](https://substreams.streamingfast.io/reference-and-specs/glossary#sink) for loading data into ClickHouse. We recommend [Substreams Sink ClickHouse](https://github.com/pinax-network/substreams-sink-clickhouse/) or [Substreams Sink SQL](https://github.com/pinax-network/substreams-sink-sql). You should use the generated [`protobuf` files](tsp-output/@typespec/protobuf) to build your substream. This Token API makes use of the [`erc20-substreams`](https://github.com/pinax-network/erc20-substreams) substream.
-- [A Substreams API Token provider](https://pinax.network) to stream blockchains Data.
+-   [ClickHouse](clickhouse.com/), databases should follow a `{chain}_tokens_{version}` naming scheme. Database tables can be setup using the [`schema.sql`](./schema.sql) definitions created by the [`create_schema.sh`](./create_schema.sh) script.
+-   A [Substream sink](https://substreams.streamingfast.io/reference-and-specs/glossary#sink) for loading data into ClickHouse. We recommend [Substreams Sink ClickHouse](https://github.com/pinax-network/substreams-sink-clickhouse/) or [Substreams Sink SQL](https://github.com/pinax-network/substreams-sink-sql). You should use the generated [`protobuf` files](tsp-output/@typespec/protobuf) to build your substream. This Token API makes use of the [`erc20-substreams`](https://github.com/pinax-network/erc20-substreams) substream.
+-   [A Substreams API Token provider](https://pinax.network) to stream blockchains Data.
 
 ### API stack architecture
 
@@ -69,11 +70,10 @@ echo "CREATE DATABASE eth_tokens_v1" | clickhouse client -h <host> --port 9000 -
 4. Execute the schema
 
 ```console
-cat /tmp/schema.sql | clickhouse client -h <host> --port 9000 -d <database> -u <user> --password <password>
+clickhouse client -h <host> --port 9000 -d <database> -u <user> --password <password> --multiquery < ./schema.sql
 ```
 
 5. Run the [sink](https://github.com/pinax-network/substreams-sink-sql)
-
 
 ```console
 export SUBSTREAMS_TOKEN= "YOUR_SUBSTREAMS_TOKEN"
@@ -110,7 +110,6 @@ echo "CREATE DATABASE eth_tokens_v1 ON CLUSTER <cluster>" | clickhouse client -h
 ./create_schema.sh -o /tmp/schema.sql -c <cluster>
 ```
 
-
 ## [`Bun` Binary Releases](https://github.com/pinax-network/antelope-token-api/releases)
 
 > [!WARNING]
@@ -119,7 +118,7 @@ echo "CREATE DATABASE eth_tokens_v1 ON CLUSTER <cluster>" | clickhouse client -h
 ```console
 $ wget https://github.com/pinax-network/erc20-token-api/releases/download/v1.0.1/erc20-token-api
 $ chmod +x ./erc20-token-api
-$ ./erc20-token-api --help                                                                                                       
+$ ./erc20-token-api --help
 Usage: erc20-token-api [options]
 
 Token balances, supply and transfers from the Antelope blockchains
@@ -158,24 +157,28 @@ VERBOSE=true
 
 ## Docker environment
 
-- Pull from GitHub Container registry
+-   Pull from GitHub Container registry
 
 **For latest tagged release**
+
 ```bash
 docker pull ghcr.io/pinax-network/erc20-token-api:latest
 ```
 
 **For head of `main` branch**
+
 ```bash
 docker pull ghcr.io/pinax-network/erc20-token-api:develop
 ```
 
-- Build from source
+-   Build from source
+
 ```bash
 docker build -t erc20-token-api .
 ```
 
-- Run with `.env` file
+-   Run with `.env` file
+
 ```bash
 docker run -it --rm --env-file .env ghcr.io/pinax-network/erc20-token-api
 ```
@@ -194,6 +197,7 @@ $ bun dev
 ```
 
 **Tests**
+
 ```console
 $ bun lint
 $ bun test

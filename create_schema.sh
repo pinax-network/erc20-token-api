@@ -41,7 +41,7 @@ cat > $SCHEMA_FILE <<- EOM
 -- Meta tables to store Substreams information --
 -------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS cursors ON CLUSTER tokenapis
+CREATE TABLE IF NOT EXISTS cursors 
 (
     id        String,
     cursor    String,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS cursors ON CLUSTER tokenapis
 -- -- Table for all balance changes event --
 -------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS balance_changes ON CLUSTER tokenapis  (
+CREATE TABLE IF NOT EXISTS balance_changes   (
     "id"            String,
     timestamp       DateTime64(3, 'UTC'),
     contract        FixedString(40),
@@ -78,7 +78,7 @@ ORDER BY (id,timestamp, block_num);
 -- -- MV for historical balance changes event order by contract address   --
 ------------------------------------------------------------------------------
 
-CREATE MATERIALIZED VIEW balance_changes_contract_historical_mv  ON CLUSTER tokenapis
+CREATE MATERIALIZED VIEW balance_changes_contract_historical_mv  
 ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (contract, owner,block_num)
 POPULATE
@@ -87,7 +87,7 @@ AS SELECT * FROM balance_changes;
 ------------------------------------------------------------------------------
 -- -- MV for historical balance changes event order by account address   --
 ------------------------------------------------------------------------------
-CREATE MATERIALIZED VIEW balance_changes_account_historical_mv ON CLUSTER tokenapis
+CREATE MATERIALIZED VIEW balance_changes_account_historical_mv 
 ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (owner, contract,block_num)
 POPULATE
@@ -97,7 +97,7 @@ AS SELECT * FROM balance_changes;
 -------------------------------------------
 -- -- MV for latest token_holders   --
 -------------------------------------------
-CREATE TABLE IF NOT EXISTS token_holders ON CLUSTER tokenapis
+CREATE TABLE IF NOT EXISTS token_holders 
 (
     account              FixedString(40),
     contract             String,
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS token_holders ON CLUSTER tokenapis
         PRIMARY KEY (contract,account)
         ORDER BY (contract, account);
 
-CREATE MATERIALIZED VIEW token_holders_mv ON CLUSTER tokenapis
+CREATE MATERIALIZED VIEW token_holders_mv 
     TO token_holders
 AS
 SELECT owner as account,
@@ -126,7 +126,7 @@ FROM balance_changes;
 -------------------------------------------
 --  MV for account balances   --
 -------------------------------------------
-CREATE TABLE IF NOT EXISTS account_balances ON CLUSTER tokenapis
+CREATE TABLE IF NOT EXISTS account_balances 
 (
     account              FixedString(40),
     contract             String,
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS account_balances ON CLUSTER tokenapis
         PRIMARY KEY (account,contract)
         ORDER BY (account,contract);
 
-CREATE MATERIALIZED VIEW account_balances_mv ON CLUSTER tokenapis
+CREATE MATERIALIZED VIEW account_balances_mv 
     TO account_balances
 AS
 SELECT owner as account,
@@ -154,7 +154,7 @@ FROM balance_changes;
 -------------------------------------------------
 --  Table for all token information --
 -------------------------------------------------
-CREATE TABLE IF NOT EXISTS contracts ON CLUSTER tokenapis  (
+CREATE TABLE IF NOT EXISTS contracts   (
     contract FixedString(40),
     name        String,
     symbol      String,
@@ -171,7 +171,7 @@ ORDER BY (contract);
 -------------------------------------------------
 --  Table for  token supply  --
 -------------------------------------------------
-CREATE TABLE IF NOT EXISTS supply ON CLUSTER tokenapis  (
+CREATE TABLE IF NOT EXISTS supply   (
     contract FixedString(40),
     supply       UInt256,
     block_num    UInt32(),
@@ -184,7 +184,7 @@ ORDER BY (contract,block_num);
 -------------------------------------------------
 --  table for all transfers events  --
 -------------------------------------------------
-CREATE TABLE IF NOT EXISTS transfers ON CLUSTER tokenapis (
+CREATE TABLE IF NOT EXISTS transfers  (
     id String,
     contract FixedString(40),
     `from` String,
@@ -203,7 +203,7 @@ ORDER BY (id, tx_id, block_num, timestamp);
 -------------------------------------------------
 --  MV for historical transfers events by contract address --
 -------------------------------------------------
-CREATE MATERIALIZED VIEW transfers_contract_historical_mv ON CLUSTER tokenapis
+CREATE MATERIALIZED VIEW transfers_contract_historical_mv 
 ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (contract, `from`,`to`,block_num)
 POPULATE
@@ -212,7 +212,7 @@ AS SELECT * FROM transfers;
 -------------------------------------------------
 --  MV for historical transfers events by from address --
 -------------------------------------------------
-CREATE MATERIALIZED VIEW transfers_from_historical_mv ON CLUSTER tokenapis
+CREATE MATERIALIZED VIEW transfers_from_historical_mv 
 ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (`from`, contract,block_num)
 POPULATE
@@ -221,7 +221,7 @@ AS SELECT * FROM transfers;
 -------------------------------------------------
 --  MV for historical transfers events by to address --
 -------------------------------------------------
-CREATE MATERIALIZED VIEW transfers_to_historical_mv ON CLUSTER tokenapis
+CREATE MATERIALIZED VIEW transfers_to_historical_mv 
 ENGINE = ReplicatedReplacingMergeTree()
 ORDER BY (`to`, contract,block_num)
 POPULATE
