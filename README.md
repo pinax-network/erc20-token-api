@@ -36,6 +36,7 @@
 
 - [ClickHouse](clickhouse.com/), databases should follow a `{chain}_tokens_{version}` naming scheme. Database tables can be setup using the [`schema.sql`](./schema.sql) definitions created by the [`create_schema.sh`](./create_schema.sh) script.
 - A [Substream sink](https://substreams.streamingfast.io/reference-and-specs/glossary#sink) for loading data into ClickHouse. We recommend [Substreams Sink ClickHouse](https://github.com/pinax-network/substreams-sink-clickhouse/) or [Substreams Sink SQL](https://github.com/pinax-network/substreams-sink-sql). You should use the generated [`protobuf` files](tsp-output/@typespec/protobuf) to build your substream. This Token API makes use of the [`erc20-substreams`](https://github.com/pinax-network/erc20-substreams) substream.
+- [A Substreams API Token provider](https://pinax.network) to stream blockchains Data.
 
 ### API stack architecture
 
@@ -72,6 +73,11 @@ cat /tmp/schema.sql | clickhouse client -h <host> --port 9000 -d <database> -u <
 ```
 
 5. Run the [sink](https://github.com/pinax-network/substreams-sink-sql)
+
+
+```console
+export SUBSTREAMS_TOKEN= "YOUR_SUBSTREAMS_TOKEN"
+```
 
 ```console
 substreams-sink-sql run clickhouse://<username>:<password>@<host>:9000/eth_tokens_v1 \
