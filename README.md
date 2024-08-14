@@ -90,7 +90,7 @@ https://github.com/pinax-network/erc20-substreams/releases/download/v0.0.2/erc20
 6. Start the API
 
 ```console
-# Will be available on locahost:8080 by default, Make sure --database exclude chains
+# Will be available on locahost:3000 by default, Make sure --database exclude chains
 erc20-token-api --host <host> --database tokens_v1 --username <username> --password <password> --verbose
 ```
 
